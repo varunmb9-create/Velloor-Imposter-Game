@@ -2,173 +2,506 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impostor Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>IMPOSTER IN VELLOOR</title>
   <script src="/socket.io/socket.io.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
-    .card { background: #1e293b; border-radius: 12px; padding: 20px; width: 100%; max-width: 480px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-    h1 { font-size: 1.4rem; text-align: center; margin-bottom: 16px; color: #38bdf8; }
-    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 1rem; }
-    input { background: #334155; color: #fff; }
-    button { background: #0284c7; color: #fff; font-weight: 600; cursor: pointer; }
-    button:hover { background: #0369a1; }
-    .secondary-btn { background: #475569; }
-    .secondary-btn:hover { background: #334155; }
-    .hidden { display: none; }
-    .role-card { background: #0f172a; border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; border: 1px solid #334155; }
-    .role-card img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
-    .clue-box { height: 130px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 0.9rem; }
-    .code-tag { background: #38bdf8; color: #000; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+    :root {
+      --gold-primary: #ffd700;
+      --gold-gradient: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+      --silver-gradient: linear-gradient(135deg, #e0e0e0, #f5f5f5, #9e9e9e, #ffffff, #757575);
+      --bg-dark: #08070b;
+      --card-bg: rgba(18, 16, 24, 0.95);
+      --gold-border: rgba(212, 175, 55, 0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: radial-gradient(circle at center, #1b1625 0%, var(--bg-dark) 100%);
+      color: #f1f1f1;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+    }
+
+    /* Moving Flame Header */
+    .title-wrapper {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .flame-title {
+      font-size: 1.85rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      background: linear-gradient(0deg, #ff1a1a 0%, #ff8c00 45%, #ffd700 80%, #ffffff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: flameFlicker 1.8s infinite alternate ease-in-out;
+      text-shadow: 0 0 18px rgba(255, 69, 0, 0.7);
+    }
+    @keyframes flameFlicker {
+      0% { filter: drop-shadow(0 0 4px #ff3b00) drop-shadow(0 0 14px #ff9400); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 8px #ff2200) drop-shadow(0 0 24px #ffd700); transform: scale(1.02) skewX(-1deg); }
+      100% { filter: drop-shadow(0 0 6px #ff0000) drop-shadow(0 0 18px #ff7b00); transform: scale(0.99) skewX(1deg); }
+    }
+
+    .container {
+      background: var(--card-bg);
+      border: 1px solid var(--gold-border);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 175, 55, 0.15);
+      border-radius: 16px;
+      padding: 22px;
+      width: 100%;
+      max-width: 480px;
+      backdrop-filter: blur(10px);
+    }
+
+    .gold-btn {
+      width: 100%;
+      padding: 13px;
+      margin-top: 10px;
+      border-radius: 9px;
+      border: 1px solid #ffe57f;
+      background: var(--gold-gradient);
+      color: #120e02;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .gold-btn:active { transform: scale(0.98); }
+    .gold-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .silver-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 9px;
+      border: 1px solid #ffffff;
+      background: var(--silver-gradient);
+      color: #1a1a1a;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: #141219;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #ffd700;
+      box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .hidden { display: none !important; }
+
+    .badge-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      margin-bottom: 12px;
+    }
+    .gold-text { color: #f5d77f; font-weight: 700; }
+    .silver-text { color: #cfd8dc; font-weight: 600; }
+
+    /* Card Visuals */
+    .role-box {
+      border: 1px solid var(--gold-border);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      margin-bottom: 14px;
+      background: rgba(0, 0, 0, 0.45);
+    }
+    .role-box img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      margin-top: 10px;
+    }
+
+    .impostor-box {
+      border-color: #ff3333;
+      background: rgba(50, 10, 10, 0.5);
+      box-shadow: 0 0 20px rgba(255, 30, 30, 0.3);
+    }
+
+    /* Clues Section */
+    .clue-stream {
+      height: 170px;
+      overflow-y: auto;
+      background: #0d0b12;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .clue-chip {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      border-left: 3px solid #ffd700;
+    }
+
+    /* Countdown Overlay */
+    .countdown-overlay {
+      text-align: center;
+      padding: 24px 0;
+    }
+    .countdown-number {
+      font-size: 4.5rem;
+      font-weight: 900;
+      color: #ff4444;
+      text-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .vote-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+    }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h1>Secret Impostor</h1>
+  <div class="container">
+    <div class="title-wrapper">
+      <h1 class="flame-title">IMPOSTER IN VELLOOR</h1>
+    </div>
 
+    <!-- 1. AUTH / JOIN SCREEN -->
     <div id="screen-auth">
-      <input type="text" id="playerName" placeholder="Your Nickname" maxlength="15" />
-      <button onclick="createRoom()">Create New Game</button>
-      <input type="text" id="roomCodeInput" placeholder="4-Letter Room Code" maxlength="4" style="margin-top: 18px; text-transform: uppercase;" />
-      <button class="secondary-btn" onclick="joinRoom()">Join Game</button>
+      <label class="gold-text" style="font-size:0.85rem;">YOUR IDENTITY</label>
+      <input type="text" id="playerName" placeholder="Enter Your Nickname" maxlength="14" />
+      <button class="gold-btn" onclick="createRoom()">Create New Game</button>
+      
+      <div style="text-align: center; margin: 15px 0 5px 0; color: #777;">— OR JOIN EXISTING —</div>
+      
+      <input type="text" id="roomCodeInput" placeholder="4-Letter Room Code" maxlength="4" style="text-transform: uppercase;" />
+      <button class="silver-btn" onclick="joinRoom()">Join Game</button>
     </div>
 
+    <!-- 2. LOBBY SCREEN -->
     <div id="screen-lobby" class="hidden">
-      <p style="text-align: center; margin-bottom: 12px;">Share Code: <span id="displayRoomCode" class="code-tag"></span></p>
-      <h3>Players in Lobby:</h3>
-      <ul id="lobbyPlayers" style="margin: 10px 0 20px 20px;"></ul>
-      <button id="startGameBtn" class="hidden" onclick="startGame()">Start Game (Host Only)</button>
+      <div class="badge-bar">
+        <span class="silver-text">ROOM CODE</span>
+        <span id="lobbyRoomCode" class="gold-text" style="font-size: 1.2rem; letter-spacing: 2px;"></span>
+      </div>
+      <p class="silver-text" style="font-size:0.85rem; margin-bottom: 8px;">PLAYERS IN CHAMBER (<span id="playerCount">0</span>):</p>
+      <ul id="lobbyPlayers" style="list-style: none; margin-bottom: 15px;"></ul>
+      <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
     </div>
 
+    <!-- 3. GAMEPLAY SCREEN -->
     <div id="screen-game" class="hidden">
-      <div class="role-card">
-        <p>Category: <strong id="cardCategory"></strong></p>
-        <h2 id="cardWord" style="margin: 8px 0; color: #f43f5e;"></h2>
-        <div id="imageContainer"></div>
+      <div class="badge-bar">
+        <span id="roundBadge" class="gold-text">ROUND 1 / 5</span>
+        <span id="turnIndicator" class="silver-text">Current Turn: ...</span>
       </div>
 
-      <div id="clueSection">
-        <h3>Clues</h3>
-        <div id="clueBox" class="clue-box"></div>
-        <input type="text" id="clueInput" placeholder="Type your clue sentence..." />
-        <button onclick="sendClue()">Submit Clue</button>
-        <button id="votingBtn" class="secondary-btn hidden" onclick="startVoting()" style="margin-top: 10px;">Proceed to Vote</button>
+      <!-- Citizen Card -->
+      <div id="citizenRoleCard" class="role-box hidden">
+        <div style="font-size: 0.8rem; color: #aaa;">TOPIC CATEGORY: <strong id="cardCategory" class="gold-text"></strong></div>
+        <div id="cardWord" style="font-size: 1.5rem; font-weight: 800; color: #ffd700; margin: 6px 0;"></div>
+        <div id="cardImageWrap"></div>
       </div>
 
-      <div id="voteSection" class="hidden">
-        <h3>Who is the Impostor?</h3>
-        <div id="voteButtons" style="margin-top: 10px;"></div>
+      <!-- Impostor Card -->
+      <div id="impostorRoleCard" class="role-box impostor-box hidden">
+        <h2 style="color: #ff4d4d; letter-spacing: 1px;">YOU ARE THE IMPOSTOR!</h2>
+        <p style="font-size: 0.88rem; color: #ffb3b3; margin-top: 6px;">
+          You do not know the topic. Listen closely to the clues, blend in, and survive the vote!
+        </p>
       </div>
+
+      <!-- Clues Feed -->
+      <div style="font-size: 0.82rem; color: #aaa; margin-top: 8px;">CLUE TRANSCRIPTS (5 ROUNDS TOTAL):</div>
+      <div id="clueStream" class="clue-stream"></div>
+
+      <!-- Clue Submission -->
+      <div id="turnActionBox" class="hidden">
+        <input type="text" id="clueInput" placeholder="Your clue for this round..." maxlength="120" />
+        <button class="gold-btn" onclick="submitClue()">Transmit Clue</button>
+      </div>
+      <p id="waitTurnMsg" class="silver-text hidden" style="text-align: center; font-size: 0.85rem; padding: 8px;">
+        Awaiting other players' clues...
+      </p>
     </div>
 
-    <div id="screen-results" class="hidden" style="text-align: center;">
-      <h2 id="resultVerdict" style="margin-bottom: 10px;"></h2>
-      <p id="resultDetails" style="margin-bottom: 20px; line-height: 1.6;"></p>
-      <button onclick="location.reload()">Play Again</button>
+    <!-- 4. VOTING SCREEN -->
+    <div id="screen-vote" class="hidden">
+      <h3 class="gold-text" style="text-align: center; margin-bottom: 6px;">VOTING TRIBUNAL</h3>
+      <p class="silver-text" style="text-align: center; font-size: 0.82rem; margin-bottom: 12px;">
+        5 rounds complete. Select the suspect and provide your reason.
+      </p>
+
+      <label class="silver-text" style="font-size: 0.8rem;">CHOOSE SUSPECT:</label>
+      <select id="suspectSelect"></select>
+
+      <label class="silver-text" style="font-size: 0.8rem; margin-top: 10px; display: block;">WHY ARE THEY THE IMPOSTOR?</label>
+      <textarea id="voteReason" rows="3" placeholder="Explain the discrepancy in their clues..."></textarea>
+
+      <button id="castVoteBtn" class="gold-btn" onclick="submitVote()">Confirm My Vote</button>
+      <div id="voteStatus" class="silver-text" style="text-align: center; margin-top: 10px; font-size: 0.85rem;"></div>
+    </div>
+
+    <!-- 5. 10-SECOND COUNTDOWN -->
+    <div id="screen-countdown" class="hidden countdown-overlay">
+      <div class="silver-text" style="font-size: 1rem; letter-spacing: 2px;">REVEALING IMPOSTOR IN</div>
+      <div id="countdownClock" class="countdown-number">10</div>
+      <div class="gold-text" style="font-size: 0.85rem;">Tallying Tribunal Votes...</div>
+    </div>
+
+    <!-- 6. FINAL RESULTS -->
+    <div id="screen-results" class="hidden">
+      <div style="text-align: center; margin-bottom: 14px;">
+        <h2 id="finalVerdict" style="font-size: 1.6rem;"></h2>
+        <p id="secretReveal" class="silver-text" style="margin-top: 4px; font-size: 0.9rem;"></p>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--gold-border); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <div class="gold-text" style="font-size: 0.85rem; margin-bottom: 4px;">VICTORIOUS:</div>
+        <div id="winnersList" style="font-weight: 700; color: #fff;"></div>
+      </div>
+
+      <div class="silver-text" style="font-size: 0.85rem; margin-bottom: 6px;">VOTES & ACCUSATIONS:</div>
+      <div id="breakdownList" style="max-height: 150px; overflow-y: auto; margin-bottom: 14px;"></div>
+
+      <button id="playAgainBtn" class="gold-btn hidden" onclick="playAgain()">Play Next Match (Host)</button>
     </div>
   </div>
 
   <script>
     const socket = io();
-    let currentRoomId = null;
+
+    // Persistent identity across mobile refreshes
+    let playerId = localStorage.getItem('velloor_player_id');
+    if (!playerId) {
+      playerId = 'p_' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('velloor_player_id', playerId);
+    }
+    let currentRoomId = localStorage.getItem('velloor_room_id');
     let isHost = false;
 
     function showScreen(id) {
-      ['screen-auth', 'screen-lobby', 'screen-game', 'screen-results'].forEach(s => {
+      ['screen-auth', 'screen-lobby', 'screen-game', 'screen-vote', 'screen-countdown', 'screen-results'].forEach(s => {
         document.getElementById(s).classList.add('hidden');
       });
       document.getElementById(id).classList.remove('hidden');
     }
 
+    // Auto reconnect on refresh
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedName = localStorage.getItem('velloor_player_name');
+      if (savedName) document.getElementById('playerName').value = savedName;
+
+      if (currentRoomId) {
+        socket.emit('resume_session', { roomId: currentRoomId, playerId });
+      }
+    });
+
+    socket.on('session_resume_failed', () => {
+      localStorage.removeItem('velloor_room_id');
+      currentRoomId = null;
+      showScreen('screen-auth');
+    });
+
+    socket.on('session_resumed', (roomData) => {
+      syncGameView(roomData);
+    });
+
     function createRoom() {
       const name = document.getElementById('playerName').value.trim();
       if (!name) return alert('Enter your nickname');
-      socket.emit('create_room', { playerName: name });
+      localStorage.setItem('velloor_player_name', name);
+      socket.emit('create_room', { playerName: name, playerId });
     }
 
     function joinRoom() {
       const name = document.getElementById('playerName').value.trim();
       const code = document.getElementById('roomCodeInput').value.trim();
-      if (!name || !code) return alert('Enter name and room code');
-      socket.emit('join_room', { roomId: code, playerName: name });
+      if (!name || !code) return alert('Enter both name and 4-letter code');
+      localStorage.setItem('velloor_player_name', name);
+      socket.emit('join_room', { roomId: code, playerName: name, playerId });
     }
 
-    function startGame() {
-      socket.emit('start_game', { roomId: currentRoomId });
-    }
-
-    function sendClue() {
-      const input = document.getElementById('clueInput');
-      if (!input.value.trim()) return;
-      socket.emit('send_clue', { roomId: currentRoomId, text: input.value.trim() });
-      input.value = '';
-    }
-
-    function startVoting() {
-      socket.emit('begin_voting', { roomId: currentRoomId });
-    }
+    socket.on('room_created', (data) => {
+      currentRoomId = data.roomId;
+      localStorage.setItem('velloor_room_id', currentRoomId);
+    });
 
     socket.on('room_joined', (data) => {
       currentRoomId = data.roomId;
-      isHost = data.isHost;
-      document.getElementById('displayRoomCode').textContent = data.roomId;
-      showScreen('screen-lobby');
-      if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
+      localStorage.setItem('velloor_room_id', currentRoomId);
     });
 
-    socket.on('player_list_updated', (players) => {
-      document.getElementById('lobbyPlayers').innerHTML = players.map(p => `<li>${p.name} ${p.isHost ? '(Host)' : ''}</li>`).join('');
+    socket.on('full_state_update', (room) => {
+      syncGameView(room);
     });
 
-    socket.on('round_started', (card) => {
-      showScreen('screen-game');
-      document.getElementById('cardCategory').textContent = card.category;
-      document.getElementById('cardWord').textContent = card.word;
-      
-      const imgCont = document.getElementById('imageContainer');
-      imgCont.innerHTML = card.image ? `<img src="${card.image}">` : '<p style="color: #94a3b8; margin-top:8px;">(No image for Impostor)</p>';
+    function syncGameView(room) {
+      if (!room) return;
+      currentRoomId = room.roomId;
+      localStorage.setItem('velloor_room_id', currentRoomId);
+      isHost = (room.hostId === playerId);
 
-      if (isHost) document.getElementById('votingBtn').classList.remove('hidden');
-    });
-
-    socket.on('new_clue', (clue) => {
-      const box = document.getElementById('clueBox');
-      box.innerHTML += `<div><strong>${clue.name}:</strong> ${clue.text}</div>`;
-      box.scrollTop = box.scrollHeight;
-    });
-
-    socket.on('phase_changed', ({ phase, players }) => {
-      if (phase === 'VOTING_PHASE') {
-        document.getElementById('clueSection').classList.add('hidden');
-        document.getElementById('voteSection').classList.remove('hidden');
-
-        const voteContainer = document.getElementById('voteButtons');
-        voteContainer.innerHTML = '';
-        players.forEach(p => {
-          if (p.id !== socket.id) {
-            const btn = document.createElement('button');
-            btn.textContent = `Vote ${p.name}`;
-            btn.onclick = () => {
-              socket.emit('cast_vote', { roomId: currentRoomId, votedPlayerId: p.id });
-              voteContainer.innerHTML = '<p>Vote recorded! Waiting for others...</p>';
-            };
-            voteContainer.appendChild(btn);
-          }
-        });
+      if (room.state === 'LOBBY') {
+        showScreen('screen-lobby');
+        document.getElementById('lobbyRoomCode').textContent = room.roomId;
+        document.getElementById('playerCount').textContent = room.players.length;
+        document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => 
+          `<li style="padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            ${p.name} ${p.isHost ? '<span class="gold-text">(Host)</span>' : ''} ${!p.connected ? '<span style="color:#f55;">(Disconnected)</span>' : ''}
+          </li>`
+        ).join('');
+        if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
+        else document.getElementById('startGameBtn').classList.add('hidden');
       }
+
+      if (room.state === 'CLUE_PHASE') {
+        showScreen('screen-game');
+        document.getElementById('roundBadge').textContent = `ROUND ${room.currentRound} / 5`;
+
+        // Render clues
+        const stream = document.getElementById('clueStream');
+        stream.innerHTML = room.clues.map(c => `
+          <div class="clue-chip">
+            <span class="gold-text">[R${c.round}] ${c.playerName}:</span> ${c.text}
+          </div>
+        `).join('');
+        stream.scrollTop = stream.scrollHeight;
+
+        // Role Display: Impostor NEVER gets category or word
+        if (room.secretCard) {
+          if (room.secretCard.role === 'IMPOSTOR') {
+            document.getElementById('impostorRoleCard').classList.remove('hidden');
+            document.getElementById('citizenRoleCard').classList.add('hidden');
+          } else {
+            document.getElementById('citizenRoleCard').classList.remove('hidden');
+            document.getElementById('impostorRoleCard').classList.add('hidden');
+            document.getElementById('cardCategory').textContent = room.secretCard.category;
+            document.getElementById('cardWord').textContent = room.secretCard.word;
+            document.getElementById('cardImageWrap').innerHTML = room.secretCard.image ? `<img src="${room.secretCard.image}" />` : '';
+          }
+        }
+
+        // Active Turn Management
+        const isMyTurn = (room.activePlayer && room.activePlayer.id === playerId);
+        document.getElementById('turnIndicator').textContent = isMyTurn ? 'Your Turn to Clue!' : `Turn: ${room.activePlayer ? room.activePlayer.name : '...'}`;
+        if (isMyTurn) {
+          document.getElementById('turnActionBox').classList.remove('hidden');
+          document.getElementById('waitTurnMsg').classList.add('hidden');
+        } else {
+          document.getElementById('turnActionBox').classList.add('hidden');
+          document.getElementById('waitTurnMsg').classList.remove('hidden');
+        }
+      }
+
+      if (room.state === 'VOTING_PHASE') {
+        showScreen('screen-vote');
+        const select = document.getElementById('suspectSelect');
+        select.innerHTML = room.players.filter(p => p.id !== playerId).map(p => 
+          `<option value="${p.id}">${p.name}</option>`
+        ).join('');
+        document.getElementById('voteStatus').textContent = `Votes recorded: ${room.votesCount || 0} / ${room.totalVoters}`;
+      }
+
+      if (room.state === 'GAME_OVER' && room.gameOverData) {
+        showScreen('screen-results');
+        const god = room.gameOverData;
+        const verdictEl = document.getElementById('finalVerdict');
+        if (god.impostorCaught) {
+          verdictEl.textContent = 'CITIZENS TRIUMPH!';
+          verdictEl.style.color = '#ffd700';
+        } else {
+          verdictEl.textContent = 'IMPOSTOR EVADED CAPTURE!';
+          verdictEl.style.color = '#ff4444';
+        }
+        document.getElementById('secretReveal').innerHTML = `The Impostor was: <strong>${god.impostorName}</strong><br>Topic: <strong>${god.secretWord}</strong> (${god.secretCategory})`;
+        document.getElementById('winnersList').textContent = god.winners.join(', ');
+
+        document.getElementById('breakdownList').innerHTML = god.detailedVotes.map(v => `
+          <div class="vote-item">
+            <strong>${v.voterName}</strong> accused <strong>${v.suspectName}</strong><br>
+            <em style="color:#bbb;">"${v.reason}"</em>
+          </div>
+        `).join('');
+
+        if (isHost) document.getElementById('playAgainBtn').classList.remove('hidden');
+        else document.getElementById('playAgainBtn').classList.add('hidden');
+      }
+    }
+
+    function startGame() {
+      socket.emit('start_game');
+    }
+
+    function submitClue() {
+      const input = document.getElementById('clueInput');
+      const text = input.value.trim();
+      if (!text) return alert('Write a clue first');
+      socket.emit('submit_clue', { text });
+      input.value = '';
+    }
+
+    function submitVote() {
+      const suspectId = document.getElementById('suspectSelect').value;
+      const reason = document.getElementById('voteReason').value.trim();
+      if (!suspectId || !reason) return alert('Select a suspect and provide your reason');
+      socket.emit('submit_vote', { suspectId, reason });
+      document.getElementById('castVoteBtn').disabled = true;
+      document.getElementById('castVoteBtn').textContent = 'Vote Locked';
+    }
+
+    socket.on('vote_progress', (data) => {
+      document.getElementById('voteStatus').textContent = `Votes recorded: ${data.votesCount} / ${data.totalVoters}`;
     });
 
-    socket.on('game_over', (data) => {
-      showScreen('screen-results');
-      document.getElementById('resultVerdict').textContent = data.impostorFound ? '🎉 Citizens Win!' : '😈 Impostor Wins!';
-      document.getElementById('resultDetails').innerHTML = `
-        Most Voted: <strong>${data.accusedName}</strong><br>
-        Actual Impostor: <strong>${data.impostorName}</strong><br>
-        Secret Word: <strong>${data.secretWord}</strong>
-      `;
+    socket.on('start_reveal_countdown', (data) => {
+      showScreen('screen-countdown');
+      document.getElementById('countdownClock').textContent = data.count;
     });
+
+    socket.on('countdown_tick', (data) => {
+      document.getElementById('countdownClock').textContent = data.count;
+    });
+
+    function playAgain() {
+      socket.emit('play_again');
+    }
 
     socket.on('error_message', (msg) => alert(msg));
   </script>
