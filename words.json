@@ -10,11 +10,6 @@
     "image": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600"
   },
   {
-    "category": "Street Food",
-    "word": "Masala Dosa",
-    "image": "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600"
-  },
-  {
     "category": "Predators",
     "word": "Royal Bengal Tiger",
     "image": "https://images.unsplash.com/photo-1549480017-d76466a4b7e8?w=600"
@@ -60,68 +55,8 @@
     "image": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600"
   },
   {
-    "category": "Space Exploration",
+    "category": "Space",
     "word": "Astronaut",
     "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600"
-  },
-  {
-    "category": "Ancient Monuments",
-    "word": "Egyptian Pyramids",
-    "image": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=600"
-  },
-  {
-    "category": "Hot Drinks",
-    "word": "Filter Coffee",
-    "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600"
-  },
-  {
-    "category": "Fast Food",
-    "word": "Cheeseburger",
-    "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600"
-  },
-  {
-    "category": "Wild Animals",
-    "word": "African Elephant",
-    "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=600"
-  },
-  {
-    "category": "Sports",
-    "word": "Football",
-    "image": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600"
-  },
-  {
-    "category": "Vehicles",
-    "word": "Superbike",
-    "image": "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600"
-  },
-  {
-    "category": "Landmarks",
-    "word": "Colosseum",
-    "image": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600"
-  },
-  {
-    "category": "Gadgets",
-    "word": "Drone Camera",
-    "image": "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600"
-  },
-  {
-    "category": "Bakery",
-    "word": "Glazed Doughnut",
-    "image": "https://images.unsplash.com/photo-1527904324834-3bda86da6771?w=600"
-  },
-  {
-    "category": "Nature",
-    "word": "Waterfall",
-    "image": "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=600"
-  },
-  {
-    "category": "Reptiles",
-    "word": "Chameleon",
-    "image": "https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=600"
-  },
-  {
-    "category": "Clothing",
-    "word": "Leather Jacket",
-    "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600"
   }
 ]
