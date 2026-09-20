@@ -318,7 +318,6 @@
       <h1 class="flame-title">IMPOSTER IN VELLOOR</h1>
     </div>
 
-    <!-- 1. AUTH / JOIN SCREEN -->
     <div id="screen-auth">
       <label class="gold-text" style="font-size:0.85rem;">CHOOSE YOUR AVATAR</label>
       <div class="avatar-grid" id="avatarGrid"></div>
@@ -333,7 +332,6 @@
       <button class="silver-btn" onclick="joinRoom()">Join Game</button>
     </div>
 
-    <!-- 2. LOBBY SCREEN -->
     <div id="screen-lobby" class="hidden">
       <div class="badge-bar">
         <span class="silver-text">ROOM CODE</span>
@@ -344,7 +342,6 @@
       <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN -->
     <div id="screen-game" class="hidden">
       <div class="badge-bar">
         <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
@@ -376,7 +373,6 @@
       </p>
     </div>
 
-    <!-- 4. VOTING SCREEN -->
     <div id="screen-vote" class="hidden">
       <h3 class="gold-text" style="text-align: center; margin-bottom: 6px;">VOTING TRIBUNAL</h3>
       <p class="silver-text" style="text-align: center; font-size: 0.82rem; margin-bottom: 12px;">
@@ -393,14 +389,12 @@
       <div id="voteStatus" class="silver-text" style="text-align: center; margin-top: 10px; font-size: 0.85rem;"></div>
     </div>
 
-    <!-- 5. 10-SECOND COUNTDOWN -->
     <div id="screen-countdown" class="hidden countdown-overlay">
       <div class="silver-text" style="font-size: 1rem; letter-spacing: 2px;">REVEALING IMPOSTOR IN</div>
       <div id="countdownClock" class="countdown-number">10</div>
       <div class="gold-text" style="font-size: 0.85rem;">Tallying Tribunal Votes...</div>
     </div>
 
-    <!-- 6. FINAL RESULTS SCREEN -->
     <div id="screen-results" class="hidden">
       <div style="text-align: center; margin-bottom: 14px;">
         <h2 id="finalVerdict" style="font-size: 1.6rem;"></h2>
