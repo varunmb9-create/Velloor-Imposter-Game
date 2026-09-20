@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impostor Game</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+    .card { background: #1e293b; border-radius: 12px; padding: 20px; width: 100%; max-width: 480px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+    h1 { font-size: 1.4rem; text-align: center; margin-bottom: 16px; color: #38bdf8; }
+    input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 1rem; }
+    input { background: #334155; color: #fff; }
+    button { background: #0284c7; color: #fff; font-weight: 600; cursor: pointer; }
+    button:hover { background: #0369a1; }
+    .secondary-btn { background: #475569; }
+    .secondary-btn:hover { background: #334155; }
+    .hidden { display: none; }
+    .role-card { background: #0f172a; border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; border: 1px solid #334155; }
+    .role-card img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-top: 10px; }
+    .clue-box { height: 130px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 0.9rem; }
+    .code-tag { background: #38bdf8; color: #000; padding: 3px 8px; border-radius: 6px; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Secret Impostor</h1>
+
+    <div id="screen-auth">
+      <input type="text" id="playerName" placeholder="Your Nickname" maxlength="15" />
+      <button onclick="createRoom()">Create New Game</button>
+      <input type="text" id="roomCodeInput" placeholder="4-Letter Room Code" maxlength="4" style="margin-top: 18px; text-transform: uppercase;" />
+      <button class="secondary-btn" onclick="joinRoom()">Join Game</button>
+    </div>
+
+    <div id="screen-lobby" class="hidden">
+      <p style="text-align: center; margin-bottom: 12px;">Share Code: <span id="displayRoomCode" class="code-tag"></span></p>
+      <h3>Players in Lobby:</h3>
+      <ul id="lobbyPlayers" style="margin: 10px 0 20px 20px;"></ul>
+      <button id="startGameBtn" class="hidden" onclick="startGame()">Start Game (Host Only)</button>
+    </div>
+
+    <div id="screen-game" class="hidden">
+      <div class="role-card">
+        <p>Category: <strong id="cardCategory"></strong></p>
+        <h2 id="cardWord" style="margin: 8px 0; color: #f43f5e;"></h2>
+        <div id="imageContainer"></div>
+      </div>
+
+      <div id="clueSection">
+        <h3>Clues</h3>
+        <div id="clueBox" class="clue-box"></div>
+        <input type="text" id="clueInput" placeholder="Type your clue sentence..." />
+        <button onclick="sendClue()">Submit Clue</button>
+        <button id="votingBtn" class="secondary-btn hidden" onclick="startVoting()" style="margin-top: 10px;">Proceed to Vote</button>
+      </div>
+
+      <div id="voteSection" class="hidden">
+        <h3>Who is the Impostor?</h3>
+        <div id="voteButtons" style="margin-top: 10px;"></div>
+      </div>
+    </div>
+
+    <div id="screen-results" class="hidden" style="text-align: center;">
+      <h2 id="resultVerdict" style="margin-bottom: 10px;"></h2>
+      <p id="resultDetails" style="margin-bottom: 20px; line-height: 1.6;"></p>
+      <button onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const socket = io();
+    let currentRoomId = null;
+    let isHost = false;
+
+    function showScreen(id) {
+      ['screen-auth', 'screen-lobby', 'screen-game', 'screen-results'].forEach(s => {
+        document.getElementById(s).classList.add('hidden');
+      });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function createRoom() {
+      const name = document.getElementById('playerName').value.trim();
+      if (!name) return alert('Enter your nickname');
+      socket.emit('create_room', { playerName: name });
+    }
+
+    function joinRoom() {
+      const name = document.getElementById('playerName').value.trim();
+      const code = document.getElementById('roomCodeInput').value.trim();
+      if (!name || !code) return alert('Enter name and room code');
+      socket.emit('join_room', { roomId: code, playerName: name });
+    }
+
+    function startGame() {
+      socket.emit('start_game', { roomId: currentRoomId });
+    }
+
+    function sendClue() {
+      const input = document.getElementById('clueInput');
+      if (!input.value.trim()) return;
+      socket.emit('send_clue', { roomId: currentRoomId, text: input.value.trim() });
+      input.value = '';
+    }
+
+    function startVoting() {
+      socket.emit('begin_voting', { roomId: currentRoomId });
+    }
+
+    socket.on('room_joined', (data) => {
+      currentRoomId = data.roomId;
+      isHost = data.isHost;
+      document.getElementById('displayRoomCode').textContent = data.roomId;
+      showScreen('screen-lobby');
+      if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
+    });
+
+    socket.on('player_list_updated', (players) => {
+      document.getElementById('lobbyPlayers').innerHTML = players.map(p => `<li>${p.name} ${p.isHost ? '(Host)' : ''}</li>`).join('');
+    });
+
+    socket.on('round_started', (card) => {
+      showScreen('screen-game');
+      document.getElementById('cardCategory').textContent = card.category;
+      document.getElementById('cardWord').textContent = card.word;
+      
+      const imgCont = document.getElementById('imageContainer');
+      imgCont.innerHTML = card.image ? `<img src="${card.image}">` : '<p style="color: #94a3b8; margin-top:8px;">(No image for Impostor)</p>';
+
+      if (isHost) document.getElementById('votingBtn').classList.remove('hidden');
+    });
+
+    socket.on('new_clue', (clue) => {
+      const box = document.getElementById('clueBox');
+      box.innerHTML += `<div><strong>${clue.name}:</strong> ${clue.text}</div>`;
+      box.scrollTop = box.scrollHeight;
+    });
+
+    socket.on('phase_changed', ({ phase, players }) => {
+      if (phase === 'VOTING_PHASE') {
+        document.getElementById('clueSection').classList.add('hidden');
+        document.getElementById('voteSection').classList.remove('hidden');
+
+        const voteContainer = document.getElementById('voteButtons');
+        voteContainer.innerHTML = '';
+        players.forEach(p => {
+          if (p.id !== socket.id) {
+            const btn = document.createElement('button');
+            btn.textContent = `Vote ${p.name}`;
+            btn.onclick = () => {
+              socket.emit('cast_vote', { roomId: currentRoomId, votedPlayerId: p.id });
+              voteContainer.innerHTML = '<p>Vote recorded! Waiting for others...</p>';
+            };
+            voteContainer.appendChild(btn);
+          }
+        });
+      }
+    });
+
+    socket.on('game_over', (data) => {
+      showScreen('screen-results');
+      document.getElementById('resultVerdict').textContent = data.impostorFound ? '🎉 Citizens Win!' : '😈 Impostor Wins!';
+      document.getElementById('resultDetails').innerHTML = `
+        Most Voted: <strong>${data.accusedName}</strong><br>
+        Actual Impostor: <strong>${data.impostorName}</strong><br>
+        Secret Word: <strong>${data.secretWord}</strong>
+      `;
+    });
+
+    socket.on('error_message', (msg) => alert(msg));
+  </script>
+</body>
+</html>
