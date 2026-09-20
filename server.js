@@ -24,7 +24,7 @@ function loadAllDecks() {
   ];
 }
 
-// Fisher-Yates array randomizer for card decks ONLY
+// True Fisher-Yates Randomizer
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -103,12 +103,12 @@ io.on('connection', (socket) => {
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
       pastImpostors: [],
-      deckPool: shuffleArray(loadAllDecks()),
+      deckPool: shuffleArray(loadAllDecks()), // Instantly shuffled deck pool
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
       totalRounds: 3,
-      turnIndex: 0, // Starts with player index 0
+      turnIndex: 0,
       clues: [],
       votes: {},
       gameOverData: null,
@@ -127,12 +127,8 @@ io.on('connection', (socket) => {
     const code = (roomId || '').trim().toUpperCase();
     const room = rooms[code];
 
-    if (!room) {
-      return socket.emit('error_message', 'Room code not found.');
-    }
-    if (room.state !== 'LOBBY') {
-      return socket.emit('error_message', 'Match already in progress.');
-    }
+    if (!room) return socket.emit('error_message', 'Room code not found.');
+    if (room.state !== 'LOBBY') return socket.emit('error_message', 'Match already in progress.');
 
     const existing = room.players.find(p => p.id === playerId);
     if (!existing) {
@@ -168,9 +164,11 @@ io.on('connection', (socket) => {
       return socket.emit('error_message', 'At least 3 players required.');
     }
 
+    // Refresh & reshuffle deck if exhausted
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = shuffleArray(loadAllDecks());
     }
+    // Pops one unique card so no duplicates can occur across matches
     room.currentCard = room.deckPool.pop();
 
     let eligible = room.players.filter(p => !room.pastImpostors.includes(p.id));
@@ -188,7 +186,7 @@ io.on('connection', (socket) => {
     room.state = 'CLUE_PHASE';
     room.currentRound = 1;
     room.totalRounds = 3;
-    room.turnIndex = 0; // Strict order: always start with player 0
+    room.turnIndex = 0; // Strict order starting with player 0
     room.clues = [];
     room.votes = {};
     room.gameOverData = null;
@@ -202,7 +200,6 @@ io.on('connection', (socket) => {
     const room = rooms[socket.roomId];
     if (!room || room.state !== 'CLUE_PHASE') return;
 
-    // Strict sequential turn validation
     const currentTurnPlayer = room.players[room.turnIndex];
     if (!currentTurnPlayer || currentTurnPlayer.id !== socket.playerId) {
       return socket.emit('error_message', 'Wait for your turn!');
@@ -218,10 +215,10 @@ io.on('connection', (socket) => {
       text: cleanText
     });
 
-    // Move to next player in list: 0 -> 1 -> 2 ...
+    // Sequential turn progression: 0 -> 1 -> 2
     room.turnIndex++;
     if (room.turnIndex >= room.players.length) {
-      room.turnIndex = 0; // Resets back to player 0 for the next round
+      room.turnIndex = 0;
       room.currentRound++;
     }
 
