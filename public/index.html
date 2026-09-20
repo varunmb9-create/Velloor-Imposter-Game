@@ -28,24 +28,25 @@
       position: relative;
     }
 
-    /* Ambient Dragon Canvases (Background & Foreground Layers) */
-    #dragonCanvasBack {
+    /* DRAGON & FIRE CANVAS */
+    #dragonCanvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
       pointer-events: none;
-      z-index: 1;
+      z-index: 25;
     }
-    #dragonCanvasFront {
+
+    #fireworksCanvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
       pointer-events: none;
-      z-index: 25; /* Flys right over the UI box and title */
+      z-index: 1001;
     }
 
     #flameGlow {
@@ -61,28 +62,30 @@
       transition: opacity 0.25s ease-out;
     }
 
-    /* Audio Sound Toggle */
-    .bgm-toggle {
+    /* Header Audio Control Panel */
+    .audio-controls {
       position: fixed;
       top: 12px;
       right: 12px;
-      z-index: 50;
-      background: rgba(0, 0, 0, 0.7);
-      border: 1px solid #ffd700;
-      color: #ffd700;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      cursor: pointer;
+      z-index: 100;
       display: flex;
-      align-items: center;
       gap: 6px;
-      backdrop-filter: blur(5px);
+    }
+    .sound-btn {
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid var(--gold-border);
+      color: #ffd700;
+      padding: 6px 10px;
+      border-radius: 18px;
+      font-size: 0.76rem;
+      cursor: pointer;
+      font-weight: bold;
+      backdrop-filter: blur(4px);
     }
 
     .title-wrapper {
       text-align: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       position: relative;
     }
     .flame-title {
@@ -144,21 +147,6 @@
       font-weight: 700;
       font-size: 0.9rem;
       cursor: pointer;
-    }
-
-    /* Host End Button */
-    .end-phase-btn {
-      background: linear-gradient(135deg, #c0392b, #e74c3c);
-      color: #fff;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #ff7979;
-      cursor: pointer;
-      margin-bottom: 10px;
-      display: inline-block;
-      text-transform: uppercase;
     }
 
     input, textarea, select {
@@ -283,7 +271,7 @@
       100% { transform: scale(1); }
     }
 
-    /* FULL-SCREEN GRAND CELEBRATION MODAL WITH FIREWORKS */
+    /* FULLSCREEN WINNER CELEBRATION MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -303,11 +291,11 @@
 
     .trophy-container {
       perspective: 800px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
     .gold-trophy {
-      width: 140px;
-      height: 180px;
+      width: 130px;
+      height: 165px;
       background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 50%, #fbf5b7 80%, #aa771c 100%);
       clip-path: polygon(15% 0%, 85% 0%, 100% 40%, 75% 65%, 60% 65%, 60% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 40% 85%, 40% 65%, 25% 65%, 0% 40%);
       position: relative;
@@ -322,7 +310,7 @@
       top: 28%;
       color: #241400;
       font-weight: 900;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       letter-spacing: 3px;
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
     }
@@ -332,42 +320,99 @@
       100% { transform: rotateY(-18deg) rotateX(10deg); filter: brightness(1); }
     }
 
-    #fireworksCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
+    /* WINNER CROWNED AVATARS STYLING */
+    .crowned-winners-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin: 14px 0 20px 0;
+      max-width: 90vw;
+    }
+    .crowned-avatar-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .crown-wrapper {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      margin-top: 18px;
+    }
+    .crown-wrapper img.winner-avatar {
       width: 100%;
       height: 100%;
-      pointer-events: none;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #ffd700;
+      box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+    }
+    .golden-crown-icon {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.75rem;
+      filter: drop-shadow(0 0 8px #ffd700);
+      animation: crownBounce 2s infinite ease-in-out;
+    }
+    @keyframes crownBounce {
+      0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+      50% { transform: translateX(-50%) translateY(-5px) rotate(4deg); }
+      100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+    }
+    .winner-name-tag {
+      margin-top: 6px;
+      font-weight: 800;
+      color: #ffd700;
+      font-size: 0.9rem;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    }
+    .winner-role-tag {
+      font-size: 0.72rem;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
 
-  <!-- Audio Music & SFX Toggle -->
-  <button id="bgmToggleBtn" class="bgm-toggle" onclick="toggleBGM()">🎵 BGM: OFF</button>
+  <!-- BGM AUDIO PLAYER: 50% VOLUME BY DEFAULT WITH LOOP -->
+  <audio id="bgmAudio" loop preload="auto">
+    <source src="https://files.catbox.moe/9p8ij0.mp3" type="audio/mpeg">
+  </audio>
 
-  <!-- Background and Foreground Dragon Canvases -->
-  <canvas id="dragonCanvasBack"></canvas>
-  <canvas id="dragonCanvasFront"></canvas>
+  <!-- DUAL SOUND CONTROLS -->
+  <div class="audio-controls">
+    <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music: ON</button>
+    <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
+  </div>
+
+  <canvas id="dragonCanvas"></canvas>
+  <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- Fullscreen Celebration Modal with Fireworks -->
+  <!-- GRAND PARTY MODAL WITH TILTING TROPHY & CROWNED WINNERS -->
   <div id="partyModal" class="hidden">
-    <canvas id="fireworksCanvas"></canvas>
     <div class="trophy-container">
       <div class="gold-trophy">
         <div class="trophy-text">VELLOOR</div>
       </div>
     </div>
-    <h1 id="partyHeader" style="font-size: 1.9rem; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); margin-bottom: 10px;"></h1>
-    <p id="partySub" class="silver-text" style="font-size: 1.05rem; max-width: 380px; margin-bottom: 24px; line-height: 1.4;"></p>
-    <button class="gold-btn" style="max-width: 250px;" onclick="closePartyModal()">View Tribunal Breakdown</button>
+    
+    <h1 id="partyHeader" style="font-size: 1.8rem; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); margin-bottom: 6px;"></h1>
+    <p id="partySub" class="silver-text" style="font-size: 0.95rem; max-width: 380px; line-height: 1.35;"></p>
+
+    <!-- Winner Crowned Avatars Feed -->
+    <div id="crownedWinnersList" class="crowned-winners-container"></div>
+
+    <button class="gold-btn" style="max-width: 250px;" onclick="closePartyModal()">View Detailed Breakdown</button>
   </div>
 
   <div class="container">
     <div class="title-wrapper">
-      <h1 class="flame-title">IMPOSTER IN VELLOOR</h1>
+      <h1 class="flame-title" id="mainBannerHeading">IMPOSTER IN VELLOOR</h1>
     </div>
 
     <!-- 1. AUTH / JOIN SCREEN -->
@@ -396,14 +441,10 @@
       <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN (3 ROUNDS) -->
+    <!-- 3. GAMEPLAY SCREEN -->
     <div id="screen-game" class="hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
-        <button id="hostForceEndBtn" class="end-phase-btn hidden" onclick="hostForceEnd()">Skip to Voting (Host)</button>
-      </div>
-
       <div class="badge-bar">
+        <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
         <span id="turnIndicator" class="silver-text">Current Turn: ...</span>
       </div>
 
@@ -436,7 +477,7 @@
     <div id="screen-vote" class="hidden">
       <h3 class="gold-text" style="text-align: center; margin-bottom: 6px;">VOTING TRIBUNAL</h3>
       <p class="silver-text" style="text-align: center; font-size: 0.82rem; margin-bottom: 12px;">
-        Pick your suspect and explain why.
+        3 rounds complete. Pick your suspect and explain why.
       </p>
 
       <label class="silver-text" style="font-size: 0.8rem;">CHOOSE SUSPECT:</label>
@@ -464,8 +505,8 @@
       </div>
 
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--gold-border); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <div class="gold-text" style="font-size: 0.85rem; margin-bottom: 4px;">HONORED CHAMPIONS & TROPHY WINNERS:</div>
-        <div id="winnersList" style="font-weight: 700; color: #fff;"></div>
+        <div class="gold-text" style="font-size: 0.85rem; margin-bottom: 8px;">CROWNED WINNERS:</div>
+        <div id="screenResultsCrownedWinners" class="crowned-winners-container" style="margin: 0 0 10px 0;"></div>
       </div>
 
       <div class="silver-text" style="font-size: 0.85rem; margin-bottom: 6px;">VOTES & REASONS:</div>
@@ -478,6 +519,12 @@
   <script>
     const socket = io();
 
+    // CUSTOM DRAGON IMAGE
+    const DRAGON_IMG_SRC = 'https://i.postimg.cc/3krTk3LM/1000129477.png';
+    const dragonImage = new Image();
+    dragonImage.src = DRAGON_IMG_SRC;
+
+    // 8 CUSTOM AVATARS
     const AVATAR_LIST = [
       'https://i.postimg.cc/9R4txjzB/1789934119807.png',
       'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
@@ -490,6 +537,7 @@
     ];
 
     let selectedAvatarIndex = 0;
+
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
       const div = document.createElement('div');
@@ -499,384 +547,280 @@
         document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
         div.classList.add('selected');
         selectedAvatarIndex = idx;
+        startBGM();
       };
       avatarGridEl.appendChild(div);
     });
 
-    // -------------------------------------------------------------
-    // ANCIENT CELTIC / OUTLANDER BGM & AUDIO ENGINE (WEB AUDIO)
-    // -------------------------------------------------------------
-    let audioCtx = null;
-    let bgmIsPlaying = false;
-    let bgmInterval = null;
+    // -------------------------------------------------------------------
+    // 1. AUDIO & SOUND FX CONTROL (50% VOLUME BGM & DRAGON SFX)
+    // -------------------------------------------------------------------
+    const bgmAudio = document.getElementById('bgmAudio');
+    bgmAudio.volume = 0.5; // 50% default volume
+    let sfxEnabled = true;
 
-    function initAudio() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    function toggleBGM() {
-      initAudio();
-      const btn = document.getElementById('bgmToggleBtn');
-      if (bgmIsPlaying) {
-        bgmIsPlaying = false;
-        clearInterval(bgmInterval);
-        btn.textContent = '🎵 BGM: OFF';
-        btn.style.color = '#ffd700';
-      } else {
-        bgmIsPlaying = true;
-        btn.textContent = '🎶 BGM: PLAYING';
-        btn.style.color = '#55ff55';
-        startOutlanderAmbientTrack();
+    function startBGM() {
+      if (bgmAudio.paused) {
+        bgmAudio.volume = 0.5;
+        bgmAudio.play().catch(e => console.log('Audio autoplay allowed after tap'));
       }
     }
 
-    // Modal Flute scale (D Celtic Minor / Dorian)
-    const fluteNotes = [146.83, 164.81, 174.61, 196.00, 220.00, 261.63, 293.66, 329.63, 349.23, 392.00];
-
-    function playDronePipe(freq, duration) {
-      if (!bgmIsPlaying) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(320, audioCtx.currentTime);
-
-      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.045, audioCtx.currentTime + 1.5);
-      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
+    function toggleBGM() {
+      const btn = document.getElementById('soundToggleBtn');
+      if (bgmAudio.paused) {
+        bgmAudio.volume = 0.5;
+        bgmAudio.play();
+        btn.textContent = '🔊 Music: ON';
+      } else {
+        bgmAudio.pause();
+        btn.textContent = '🔇 Music: OFF';
+      }
     }
 
-    function playTribalDrum() {
-      if (!bgmIsPlaying) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(110, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(38, audioCtx.currentTime + 0.4);
-
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.4);
+    function toggleSFX() {
+      sfxEnabled = !sfxEnabled;
+      const btn = document.getElementById('sfxToggleBtn');
+      btn.textContent = sfxEnabled ? '🔥 SFX: ON' : '🔇 SFX: OFF';
     }
 
-    function playFlutePipeNote(freq) {
-      if (!bgmIsPlaying) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 0.2);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 1.2);
-    }
-
-    function startOutlanderAmbientTrack() {
-      playDronePipe(73.42, 10);
-      playDronePipe(110.00, 10);
-      let beatCount = 0;
-
-      bgmInterval = setInterval(() => {
-        if (!bgmIsPlaying) return;
-        beatCount++;
-
-        // Ancient Drum Cadence
-        if (beatCount % 2 === 1) playTribalDrum();
-
-        // Pipe drone refresh
-        if (beatCount % 8 === 0) {
-          playDronePipe(73.42, 8);
-          playDronePipe(110.00, 8);
-        }
-
-        // Celtic Flute Melody Phrases
-        if (Math.random() > 0.35) {
-          const note = fluteNotes[Math.floor(Math.random() * fluteNotes.length)];
-          playFlutePipeNote(note);
-        }
-      }, 700);
+    let sfxCtx = null;
+    function getSFXContext() {
+      if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (sfxCtx.state === 'suspended') sfxCtx.resume();
+      return sfxCtx;
     }
 
     function playWingFlapSFX() {
-      initAudio();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      if (!sfxEnabled) return;
+      const ctx = getSFXContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(95, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(25, audioCtx.currentTime + 0.35);
-      gain.gain.setValueAtTime(0.28, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+      osc.frequency.setValueAtTime(90, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.35);
+      osc.stop(ctx.currentTime + 0.4);
     }
 
     function playFlameSFX() {
-      initAudio();
-      const bufferSize = audioCtx.sampleRate * 1.6;
-      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      if (!sfxEnabled) return;
+      const ctx = getSFXContext();
+      const bufferSize = ctx.sampleRate * 1.5;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
 
-      const noise = audioCtx.createBufferSource();
+      const noise = ctx.createBufferSource();
       noise.buffer = buffer;
-      const filter = audioCtx.createBiquadFilter();
+      const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(900, audioCtx.currentTime);
-      filter.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 1.6);
+      filter.frequency.setValueAtTime(850, ctx.currentTime);
+      filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 1.5);
 
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 1.6);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 1.5);
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
+
       noise.start();
-      noise.stop(audioCtx.currentTime + 1.6);
+      noise.stop(ctx.currentTime + 1.5);
     }
 
-    function playFireworkBlastSFX() {
-      initAudio();
-      const bufferSize = audioCtx.sampleRate * 0.8;
-      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    function playFireworkBoomSFX() {
+      if (!sfxEnabled) return;
+      const ctx = getSFXContext();
+      const bufferSize = ctx.sampleRate * 0.9;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.15));
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
 
-      const noise = audioCtx.createBufferSource();
+      const noise = ctx.createBufferSource();
       noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(400, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.9);
 
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.setValueAtTime(800 + Math.random() * 600, audioCtx.currentTime);
-
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.35, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.9);
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(audioCtx.destination);
+      gain.connect(ctx.destination);
+
       noise.start();
-      noise.stop(audioCtx.currentTime + 0.8);
+      noise.stop(ctx.currentTime + 0.9);
     }
 
-    // -------------------------------------------------------------
-    // DRAGON FLYOVER ENGINES (FOREGROUND PASSES & TITLE FLIGHT)
-    // -------------------------------------------------------------
-    const canvasBack = document.getElementById('dragonCanvasBack');
-    const ctxBack = canvasBack.getContext('2d');
-    const canvasFront = document.getElementById('dragonCanvasFront');
-    const ctxFront = canvasFront.getContext('2d');
-
-    function resizeCanvases() {
-      canvasBack.width = canvasFront.width = window.innerWidth;
-      canvasBack.height = canvasFront.height = window.innerHeight;
+    // -------------------------------------------------------------------
+    // 2. FLYING DRAGON ACROSS TITLE
+    // -------------------------------------------------------------------
+    const canvas = document.getElementById('dragonCanvas');
+    const dctx = canvas.getContext('2d');
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeCanvases);
-    resizeCanvases();
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
     let dragon = null;
 
     function spawnDragon() {
       const fromLeft = Math.random() > 0.5;
-      const isForeground = Math.random() > 0.45; // Foreground pass across title & UI
-      const startY = isForeground ? (80 + Math.random() * 90) : (Math.random() * (window.innerHeight * 0.6));
+      const banner = document.getElementById('mainBannerHeading').getBoundingClientRect();
+      const targetY = Math.max(35, banner.top + (Math.random() * 30 - 15));
 
       dragon = {
-        x: fromLeft ? -180 : window.innerWidth + 180,
-        y: startY,
-        vx: fromLeft ? (4.2 + Math.random() * 2) : -(4.2 + Math.random() * 2),
+        x: fromLeft ? -220 : canvas.width + 220,
+        y: targetY,
+        vx: fromLeft ? (5 + Math.random() * 2) : -(5 + Math.random() * 2),
         vy: (Math.random() - 0.5) * 1.5,
-        scale: isForeground ? (1.35 + Math.random() * 0.3) : (0.85 + Math.random() * 0.25),
-        isForeground,
+        width: 150,
+        height: 110,
         facingLeft: !fromLeft,
-        wingPhase: 0,
         flameDone: false
       };
       playWingFlapSFX();
     }
 
-    function drawDragonOnContext(ctx, d) {
-      ctx.save();
-      ctx.translate(d.x, d.y);
-      if (d.facingLeft) ctx.scale(-d.scale, d.scale);
-      else ctx.scale(d.scale, d.scale);
+    function drawDragon(d) {
+      dctx.save();
+      dctx.translate(d.x, d.y);
+      if (d.facingLeft) dctx.scale(-1, 1);
 
-      d.wingPhase += 0.2;
-      const wingY = Math.sin(d.wingPhase) * 32;
+      if (dragonImage.complete && dragonImage.naturalWidth > 0) {
+        dctx.drawImage(dragonImage, -d.width / 2, -d.height / 2, d.width, d.height);
+      }
 
-      ctx.fillStyle = '#b71c1c';
-      // Wing
-      ctx.beginPath();
-      ctx.moveTo(-10, -5);
-      ctx.lineTo(-50, -60 + wingY);
-      ctx.lineTo(28, -20);
-      ctx.closePath();
-      ctx.fill();
+      // Golden "VELLOOR" Collar
+      dctx.fillStyle = '#ffd700';
+      dctx.fillRect(16, -14, 28, 12);
+      dctx.fillStyle = '#000';
+      dctx.font = 'bold 8px sans-serif';
+      dctx.fillText('VELLOOR', 18, -5);
 
-      // Body & Tail
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 48, 18, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.moveTo(-38, 0);
-      ctx.lineTo(-92, -8);
-      ctx.lineTo(-44, 8);
-      ctx.closePath();
-      ctx.fill();
-
-      // Head & Neck
-      ctx.beginPath();
-      ctx.moveTo(28, -5);
-      ctx.lineTo(60, -22);
-      ctx.lineTo(48, 6);
-      ctx.closePath();
-      ctx.fill();
-
-      // "VELLOOR" Collar
-      ctx.fillStyle = '#ffd700';
-      ctx.fillRect(28, -18, 20, 11);
-      ctx.fillStyle = '#000';
-      ctx.font = 'bold 7.5px sans-serif';
-      ctx.fillText('VELLOOR', 29, -10);
-
-      // Breath Flame
-      if (!d.flameDone && d.x > window.innerWidth * 0.35 && d.x < window.innerWidth * 0.65) {
+      // Spit flame in middle
+      if (!d.flameDone && d.x > canvas.width * 0.25 && d.x < canvas.width * 0.75) {
         d.flameDone = true;
         playFlameSFX();
         const glow = document.getElementById('flameGlow');
         glow.style.opacity = '1';
         setTimeout(() => glow.style.opacity = '0', 650);
 
-        for (let i = 0; i < 28; i++) {
-          ctx.fillStyle = i % 2 === 0 ? '#ff2200' : '#ffd700';
-          ctx.beginPath();
-          ctx.arc(66 + Math.random() * 65, -22 + (Math.random() - 0.5) * 28, 4 + Math.random() * 8, 0, Math.PI * 2);
-          ctx.fill();
+        for (let i = 0; i < 30; i++) {
+          dctx.fillStyle = i % 2 === 0 ? '#ff3b00' : '#ffd700';
+          dctx.beginPath();
+          dctx.arc(60 + Math.random() * 80, -10 + (Math.random() - 0.5) * 35, 5 + Math.random() * 10, 0, Math.PI * 2);
+          dctx.fill();
         }
       }
 
-      ctx.restore();
+      dctx.restore();
     }
 
-    function animateDragons() {
-      ctxBack.clearRect(0, 0, canvasBack.width, canvasBack.height);
-      ctxFront.clearRect(0, 0, canvasFront.width, canvasFront.height);
-
+    function animateDragon() {
+      dctx.clearRect(0, 0, canvas.width, canvas.height);
       if (dragon) {
         dragon.x += dragon.vx;
         dragon.y += dragon.vy;
-        const targetCtx = dragon.isForeground ? ctxFront : ctxBack;
-        drawDragonOnContext(targetCtx, dragon);
+        drawDragon(dragon);
 
-        if (dragon.vx > 0 && dragon.x > window.innerWidth + 220) dragon = null;
-        if (dragon.vx < 0 && dragon.x < -220) dragon = null;
+        if (dragon.vx > 0 && dragon.x > canvas.width + 300) dragon = null;
+        if (dragon.vx < 0 && dragon.x < -300) dragon = null;
       }
-      requestAnimationFrame(animateDragons);
+      requestAnimationFrame(animateDragon);
     }
-    animateDragons();
-    setInterval(spawnDragon, 10000);
+    animateDragon();
 
-    // -------------------------------------------------------------
-    // GRAND FIREWORKS SYSTEM FOR WINNER CELEBRATION
-    // -------------------------------------------------------------
+    setInterval(spawnDragon, 5000);
+
+    // -------------------------------------------------------------------
+    // 3. FIREWORKS ENGINE
+    // -------------------------------------------------------------------
     const fwCanvas = document.getElementById('fireworksCanvas');
     const fwCtx = fwCanvas.getContext('2d');
-    let fwParticles = [];
-    let fireworksInterval = null;
+    let fireworks = [];
 
-    function startFireworksShow() {
+    function resizeFireworks() {
       fwCanvas.width = window.innerWidth;
       fwCanvas.height = window.innerHeight;
-      fwParticles = [];
-
-      fireworksInterval = setInterval(() => {
-        if (document.getElementById('partyModal').classList.contains('hidden')) {
-          clearInterval(fireworksInterval);
-          return;
-        }
-        createFireworkBurst(Math.random() * fwCanvas.width, 100 + Math.random() * (fwCanvas.height * 0.4));
-        playFireworkBlastSFX();
-      }, 450);
-
-      runFireworksLoop();
     }
+    window.addEventListener('resize', resizeFireworks);
+    resizeFireworks();
 
-    function createFireworkBurst(x, y) {
-      const colors = ['#ffd700', '#ff3b00', '#ff0055', '#00e5ff', '#ffffff'];
+    function launchFirework() {
+      const x = Math.random() * fwCanvas.width;
+      const y = 80 + Math.random() * (fwCanvas.height * 0.45);
+      const colors = ['#ffd700', '#ff3b00', '#00e5ff', '#ff007f', '#ffffff'];
       const color = colors[Math.floor(Math.random() * colors.length)];
+
+      playFireworkBoomSFX();
+
       for (let i = 0; i < 45; i++) {
-        const angle = (Math.PI * 2 / 45) * i;
-        const speed = 2 + Math.random() * 5;
-        fwParticles.push({
-          x, y,
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 6;
+        fireworks.push({
+          x,
+          y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           alpha: 1,
           color,
-          decay: 0.015 + Math.random() * 0.02
+          radius: 2 + Math.random() * 3
         });
       }
     }
 
-    function runFireworksLoop() {
-      if (document.getElementById('partyModal').classList.contains('hidden')) return;
-      fwCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-      fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
-
-      for (let i = fwParticles.length - 1; i >= 0; i--) {
-        const p = fwParticles[i];
+    function animateFireworks() {
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+      for (let i = fireworks.length - 1; i >= 0; i--) {
+        const p = fireworks[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.05; // gravity
-        p.alpha -= p.decay;
+        p.vy += 0.05;
+        p.alpha -= 0.016;
 
         if (p.alpha <= 0) {
-          fwParticles.splice(i, 1);
-          continue;
+          fireworks.splice(i, 1);
+        } else {
+          fwCtx.save();
+          fwCtx.globalAlpha = p.alpha;
+          fwCtx.fillStyle = p.color;
+          fwCtx.beginPath();
+          fwCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          fwCtx.fill();
+          fwCtx.restore();
         }
-
-        fwCtx.save();
-        fwCtx.globalAlpha = p.alpha;
-        fwCtx.fillStyle = p.color;
-        fwCtx.beginPath();
-        fwCtx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-        fwCtx.fill();
-        fwCtx.restore();
       }
-      requestAnimationFrame(runFireworksLoop);
+      requestAnimationFrame(animateFireworks);
+    }
+    animateFireworks();
+
+    let fwTimer = null;
+    function startFireworksShow() {
+      launchFirework();
+      if (fwTimer) clearInterval(fwTimer);
+      fwTimer = setInterval(launchFirework, 700);
+      setTimeout(() => clearInterval(fwTimer), 8000);
     }
 
     function closePartyModal() {
       document.getElementById('partyModal').classList.add('hidden');
-      if (fireworksInterval) clearInterval(fireworksInterval);
     }
 
-    // -------------------------------------------------------------
-    // SOCKET AND CLIENT SESSION STATE
-    // -------------------------------------------------------------
+    // -------------------------------------------------------------------
+    // 4. CLIENT LOGIC & SOCKET MANAGEMENT
+    // -------------------------------------------------------------------
     let playerId = localStorage.getItem('velloor_player_id');
     if (!playerId) {
       playerId = 'p_' + Math.random().toString(36).substring(2, 10);
@@ -912,7 +856,7 @@
     });
 
     function createRoom() {
-      initAudio();
+      startBGM();
       const name = document.getElementById('playerName').value.trim();
       if (!name) return alert('Enter your nickname');
       localStorage.setItem('velloor_player_name', name);
@@ -920,7 +864,7 @@
     }
 
     function joinRoom() {
-      initAudio();
+      startBGM();
       const name = document.getElementById('playerName').value.trim();
       const code = document.getElementById('roomCodeInput').value.trim();
       if (!name || !code) return alert('Enter both name and 4-letter code');
@@ -965,11 +909,6 @@
       if (room.state === 'CLUE_PHASE') {
         showScreen('screen-game');
         document.getElementById('roundBadge').textContent = `ROUND ${room.currentRound} / 3`;
-
-        // Host Skip to Voting Button
-        const hostEndBtn = document.getElementById('hostForceEndBtn');
-        if (isHost) hostEndBtn.classList.remove('hidden');
-        else hostEndBtn.classList.add('hidden');
 
         const stream = document.getElementById('clueStream');
         stream.innerHTML = room.clues.map(c => `
@@ -1019,31 +958,34 @@
         document.getElementById('partyModal').classList.remove('hidden');
         startFireworksShow();
 
-        // Check if current player personally gets a trophy
-        const myName = (room.players.find(p => p.id === playerId) || {}).name;
-        const mySecretRole = room.secretCard ? room.secretCard.role : null;
-        const iIdentifiedImpostor = god.correctDetectives && god.correctDetectives.includes(myName);
-        const iAmWinningImpostor = (mySecretRole === 'IMPOSTOR' && !god.impostorCaught);
+        // 2. RENDER SHINING CROWNED WINNERS
+        const crownedHTML = god.winningPlayers.map(w => `
+          <div class="crowned-avatar-card">
+            <div class="crown-wrapper">
+              <span class="golden-crown-icon">👑</span>
+              <img class="winner-avatar" src="${AVATAR_LIST[w.avatar || 0]}" />
+            </div>
+            <div class="winner-name-tag">${w.name}</div>
+            <div class="winner-role-tag">${w.title}</div>
+          </div>
+        `).join('');
 
-        if (iIdentifiedImpostor || iAmWinningImpostor) {
-          document.getElementById('partyHeader').textContent = 'YOU CLAIM THE GOLDEN TROPHY!';
-          document.getElementById('partySub').innerHTML = iAmWinningImpostor 
-            ? 'Masterful deception! You outwitted Vellor Chamber.' 
-            : 'Exceptional deduction! You correctly uncovered the Impostor!';
-        } else if (god.impostorCaught) {
+        document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
+        document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
+
+        if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified by: <strong>${god.winners.join(', ')}</strong>`;
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified!<br>Every detective who found them is awarded the Golden Trophy!`;
         } else {
-          document.getElementById('partyHeader').textContent = 'IMPOSTOR ESCAPED CAPTURE!';
-          document.getElementById('partySub').innerHTML = `<strong>${god.impostorName}</strong> won the majority! Detective honors: <strong>${god.correctDetectives.length ? god.correctDetectives.join(', ') : 'None'}</strong>`;
+          document.getElementById('partyHeader').textContent = 'IMPOSTOR & TRUE DETECTIVES!';
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived!<br>Crowned heroes are honored below:`;
         }
 
         const verdictEl = document.getElementById('finalVerdict');
-        verdictEl.textContent = god.impostorCaught ? 'CITIZENS TRIUMPH!' : 'IMPOSTOR EVADED CAPTURE!';
+        verdictEl.textContent = god.impostorCaught ? 'CITIZENS TRIUMPH!' : 'IMPOSTOR EVADED THE MAJORITY!';
         verdictEl.style.color = god.impostorCaught ? '#ffd700' : '#ff4444';
 
         document.getElementById('secretReveal').innerHTML = `The Impostor was: <strong>${god.impostorName}</strong><br>Topic: <strong>${god.secretWord}</strong> (${god.secretCategory})`;
-        document.getElementById('winnersList').textContent = god.winners.join(', ');
 
         document.getElementById('breakdownList').innerHTML = god.detailedVotes.map(v => `
           <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; margin-bottom: 6px; font-size: 0.88rem;">
@@ -1054,12 +996,6 @@
 
         if (isHost) document.getElementById('playAgainBtn').classList.remove('hidden');
         else document.getElementById('playAgainBtn').classList.add('hidden');
-      }
-    }
-
-    function hostForceEnd() {
-      if (confirm('Enter directly into the voting tribunal early?')) {
-        socket.emit('force_end_to_voting');
       }
     }
 
