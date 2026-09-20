@@ -16,7 +16,7 @@ function loadAllDecks() {
     const data = JSON.parse(raw);
     if (Array.isArray(data) && data.length > 0) return data;
   } catch (err) {
-    console.error('Error reading words.json, using fallback');
+    console.error('Error reading words.json');
   }
   return [
     { category: 'Landmarks', word: 'Taj Mahal', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600' },
@@ -24,7 +24,6 @@ function loadAllDecks() {
   ];
 }
 
-// True Fisher-Yates Randomizer
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -103,7 +102,7 @@ io.on('connection', (socket) => {
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
       pastImpostors: [],
-      deckPool: shuffleArray(loadAllDecks()), // Instantly shuffled deck pool
+      deckPool: shuffleArray(loadAllDecks()),
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -164,11 +163,9 @@ io.on('connection', (socket) => {
       return socket.emit('error_message', 'At least 3 players required.');
     }
 
-    // Refresh & reshuffle deck if exhausted
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = shuffleArray(loadAllDecks());
     }
-    // Pops one unique card so no duplicates can occur across matches
     room.currentCard = room.deckPool.pop();
 
     let eligible = room.players.filter(p => !room.pastImpostors.includes(p.id));
@@ -186,7 +183,7 @@ io.on('connection', (socket) => {
     room.state = 'CLUE_PHASE';
     room.currentRound = 1;
     room.totalRounds = 3;
-    room.turnIndex = 0; // Strict order starting with player 0
+    room.turnIndex = 0;
     room.clues = [];
     room.votes = {};
     room.gameOverData = null;
@@ -215,7 +212,6 @@ io.on('connection', (socket) => {
       text: cleanText
     });
 
-    // Sequential turn progression: 0 -> 1 -> 2
     room.turnIndex++;
     if (room.turnIndex >= room.players.length) {
       room.turnIndex = 0;
