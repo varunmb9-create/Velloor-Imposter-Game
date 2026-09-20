@@ -28,7 +28,7 @@ function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[j], arr[i]] = [arr[i], arr[j]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
 }
@@ -119,7 +119,7 @@ io.on('connection', (socket) => {
     socket.join(roomId);
 
     socket.emit('room_created', { roomId, playerId });
-    io.to(roomId).emit('full_state_update', getSanitizedRoom(rooms[roomId], playerId));
+    socket.emit('full_state_update', getSanitizedRoom(rooms[roomId], playerId));
   });
 
   socket.on('join_room', ({ roomId, playerName, avatar, playerId }) => {
@@ -282,7 +282,6 @@ io.on('connection', (socket) => {
           const impostor = room.players.find(p => p.role === 'IMPOSTOR');
           const impostorCaught = !isTie && (accusedId === impostor.id);
 
-          // All detectives who spotted the impostor
           const winningPlayers = [];
           Object.values(room.votes).forEach(v => {
             if (v.suspectId === impostor.id) {
@@ -298,7 +297,6 @@ io.on('connection', (socket) => {
             }
           });
 
-          // If impostor evaded the majority vote
           if (!impostorCaught) {
             winningPlayers.unshift({
               id: impostor.id,
