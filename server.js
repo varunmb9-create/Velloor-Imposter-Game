@@ -16,7 +16,7 @@ function loadAllDecks() {
     const data = JSON.parse(raw);
     if (Array.isArray(data) && data.length > 0) return data;
   } catch (err) {
-    console.error('Deck read error, fallback used');
+    console.error('Error reading words.json');
   }
   return [
     { category: 'Landmarks', word: 'Taj Mahal', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600' },
