@@ -6,13 +6,11 @@ const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: '*' }
-});
+const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-function loadDecks() {
+function loadAllDecks() {
   try {
     const raw = fs.readFileSync(path.join(__dirname, 'words.json'), 'utf8');
     const data = JSON.parse(raw);
@@ -22,12 +20,20 @@ function loadDecks() {
   }
   return [
     { category: 'Landmarks', word: 'Taj Mahal', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600' },
-    { category: 'Vehicles', word: 'Helicopter', image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600' },
-    { category: 'Food', word: 'Biryani', image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600' }
+    { category: 'Vehicles', word: 'Helicopter', image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600' }
   ];
 }
 
-// roomId -> room state
+// Fisher-Yates array randomizer for card decks ONLY
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 const rooms = {};
 
 function generateRoomCode() {
@@ -53,6 +59,7 @@ function getSanitizedRoom(room, forPlayerId) {
     players: room.players.map(p => ({
       id: p.id,
       name: p.name,
+      avatar: p.avatar,
       isHost: p.id === room.hostId,
       connected: p.connected
     })),
@@ -70,7 +77,6 @@ function getSanitizedRoom(room, forPlayerId) {
 }
 
 io.on('connection', (socket) => {
-  // Restore Session after Refresh
   socket.on('resume_session', ({ roomId, playerId }) => {
     const room = rooms[roomId];
     if (!room) return socket.emit('session_resume_failed');
@@ -78,7 +84,6 @@ io.on('connection', (socket) => {
     const player = room.players.find(p => p.id === playerId);
     if (!player) return socket.emit('session_resume_failed');
 
-    // Transfer socket
     player.socketId = socket.id;
     player.connected = true;
     socket.join(roomId);
@@ -87,25 +92,25 @@ io.on('connection', (socket) => {
 
     socket.emit('session_resumed', getSanitizedRoom(room, player.id));
     io.to(roomId).emit('room_sync', {
-      players: room.players.map(p => ({ id: p.id, name: p.name, isHost: p.id === room.hostId, connected: p.connected }))
+      players: room.players.map(p => ({ id: p.id, name: p.name, avatar: p.avatar, isHost: p.id === room.hostId, connected: p.connected }))
     });
   });
 
-  // Create Room
-  socket.on('create_room', ({ playerName, playerId }) => {
+  socket.on('create_room', ({ playerName, avatar, playerId }) => {
     const roomId = generateRoomCode();
     rooms[roomId] = {
       roomId,
       hostId: playerId,
-      players: [{ id: playerId, socketId: socket.id, name: playerName, role: null, connected: true }],
+      players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
       pastImpostors: [],
+      deckPool: shuffleArray(loadAllDecks()),
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
-      totalRounds: 5,
-      turnIndex: 0,
+      totalRounds: 3,
+      turnIndex: 0, // Starts with player index 0
       clues: [],
-      votes: {}, // voterId -> { suspectId, reason }
+      votes: {},
       gameOverData: null,
       countdownTimer: null
     };
@@ -118,16 +123,15 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('full_state_update', getSanitizedRoom(rooms[roomId], playerId));
   });
 
-  // Join Room
-  socket.on('join_room', ({ roomId, playerName, playerId }) => {
+  socket.on('join_room', ({ roomId, playerName, avatar, playerId }) => {
     const code = (roomId || '').trim().toUpperCase();
     const room = rooms[code];
 
     if (!room) {
-      return socket.emit('error_message', 'Room not found. Verify the code.');
+      return socket.emit('error_message', 'Room code not found.');
     }
     if (room.state !== 'LOBBY') {
-      return socket.emit('error_message', 'Game is already active.');
+      return socket.emit('error_message', 'Match already in progress.');
     }
 
     const existing = room.players.find(p => p.id === playerId);
@@ -136,12 +140,14 @@ io.on('connection', (socket) => {
         id: playerId,
         socketId: socket.id,
         name: playerName,
+        avatar: avatar || 0,
         role: null,
         connected: true
       });
     } else {
       existing.socketId = socket.id;
       existing.name = playerName;
+      existing.avatar = avatar || existing.avatar;
       existing.connected = true;
     }
 
@@ -155,18 +161,18 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Start Game
   socket.on('start_game', () => {
     const room = rooms[socket.roomId];
     if (!room || room.hostId !== socket.playerId) return;
     if (room.players.length < 3) {
-      return socket.emit('error_message', 'Need at least 3 players to start.');
+      return socket.emit('error_message', 'At least 3 players required.');
     }
 
-    const decks = loadDecks();
-    room.currentCard = decks[Math.floor(Math.random() * decks.length)];
+    if (!room.deckPool || room.deckPool.length === 0) {
+      room.deckPool = shuffleArray(loadAllDecks());
+    }
+    room.currentCard = room.deckPool.pop();
 
-    // Fair Rotation for Impostor (No repeats until all have been impostor)
     let eligible = room.players.filter(p => !room.pastImpostors.includes(p.id));
     if (eligible.length === 0) {
       room.pastImpostors = [];
@@ -181,8 +187,8 @@ io.on('connection', (socket) => {
 
     room.state = 'CLUE_PHASE';
     room.currentRound = 1;
-    room.totalRounds = 5;
-    room.turnIndex = 0;
+    room.totalRounds = 3;
+    room.turnIndex = 0; // Strict order: always start with player 0
     room.clues = [];
     room.votes = {};
     room.gameOverData = null;
@@ -192,11 +198,11 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Send Clue
   socket.on('submit_clue', ({ text }) => {
     const room = rooms[socket.roomId];
     if (!room || room.state !== 'CLUE_PHASE') return;
 
+    // Strict sequential turn validation
     const currentTurnPlayer = room.players[room.turnIndex];
     if (!currentTurnPlayer || currentTurnPlayer.id !== socket.playerId) {
       return socket.emit('error_message', 'Wait for your turn!');
@@ -205,18 +211,17 @@ io.on('connection', (socket) => {
     const cleanText = (text || '').trim();
     if (!cleanText) return;
 
-    const entry = {
+    room.clues.push({
       round: room.currentRound,
       playerName: currentTurnPlayer.name,
       playerId: currentTurnPlayer.id,
       text: cleanText
-    };
-    room.clues.push(entry);
+    });
 
-    // Advance turns and 5 Rounds
+    // Move to next player in list: 0 -> 1 -> 2 ...
     room.turnIndex++;
     if (room.turnIndex >= room.players.length) {
-      room.turnIndex = 0;
+      room.turnIndex = 0; // Resets back to player 0 for the next round
       room.currentRound++;
     }
 
@@ -229,13 +234,12 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Cast Vote with Reason
   socket.on('submit_vote', ({ suspectId, reason }) => {
     const room = rooms[socket.roomId];
     if (!room || room.state !== 'VOTING_PHASE') return;
 
     if (!suspectId || !reason || !reason.trim()) {
-      return socket.emit('error_message', 'Choose a suspect and provide your reason.');
+      return socket.emit('error_message', 'Pick a suspect and provide your reason.');
     }
 
     room.votes[socket.playerId] = {
@@ -251,7 +255,6 @@ io.on('connection', (socket) => {
       });
     });
 
-    // When all votes are submitted -> Trigger 10s countdown
     if (Object.keys(room.votes).length === room.players.length) {
       room.state = 'COUNTDOWN';
       let secondsLeft = 10;
@@ -264,7 +267,6 @@ io.on('connection', (socket) => {
         } else {
           clearInterval(room.countdownTimer);
 
-          // Calculate Verdict
           const counts = {};
           Object.values(room.votes).forEach(v => {
             counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
@@ -289,15 +291,13 @@ io.on('connection', (socket) => {
 
           const winners = [];
           if (impostorCaught) {
-            // Citizens who identified the real impostor win
             Object.values(room.votes).forEach(v => {
               if (v.suspectId === impostor.id) {
                 const voter = room.players.find(p => p.id === v.voterId);
-                if (voter) winners.push(voter.name);
+                if (voter && !winners.includes(voter.name)) winners.push(voter.name);
               }
             });
           } else {
-            // Impostor wins
             winners.push(impostor.name + ' (The Impostor)');
           }
 
@@ -329,7 +329,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Play Again (Reset Room)
   socket.on('play_again', () => {
     const room = rooms[socket.roomId];
     if (!room || room.hostId !== socket.playerId) return;
@@ -355,7 +354,6 @@ io.on('connection', (socket) => {
     const p = room.players.find(x => x.id === socket.playerId);
     if (p) p.connected = false;
 
-    // Remove if empty
     const anyConnected = room.players.some(x => x.connected);
     if (!anyConnected) {
       if (room.countdownTimer) clearInterval(room.countdownTimer);
