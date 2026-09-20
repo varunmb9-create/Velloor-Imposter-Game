@@ -190,7 +190,7 @@
       border-radius: 10px;
       border: 2px solid transparent;
       padding: 4px;
-      background: rgba(255, 255, 255, 0.05);
+      background: #000000;
       cursor: pointer;
       display: flex;
       justify-content: center;
@@ -202,11 +202,19 @@
       height: 52px;
       border-radius: 8px;
       object-fit: cover;
+      background: #000000;
     }
     .avatar-card.selected {
       border-color: #ffd700;
       box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
       transform: scale(1.05);
+    }
+
+    /* REMOVE WHITE BACKGROUND FOR AVATAR 4 & 7 */
+    .avatar-darken-bg {
+      background-color: #000000 !important;
+      mix-blend-mode: screen !important;
+      filter: contrast(1.15) brightness(0.95);
     }
 
     .badge-bar {
@@ -277,6 +285,7 @@
       animation: pulse 1s infinite;
     }
 
+    /* FULLSCREEN PARTY MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -344,6 +353,8 @@
       width: 68px;
       height: 68px;
       margin-top: 16px;
+      background: #000;
+      border-radius: 50%;
     }
     .crown-wrapper img.winner-avatar {
       width: 100%;
@@ -352,6 +363,7 @@
       object-fit: cover;
       border: 3px solid #ffd700;
       box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+      background: #000;
     }
     .golden-crown-icon {
       position: absolute;
@@ -611,11 +623,16 @@
     let selectedAvatarIndex = 0;
     let latestMatchPoints = {};
 
+    function isDarkenAvatar(idx) {
+      return idx === 3 || idx === 6; // 4th and 7th avatars (zero-indexed)
+    }
+
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
       const div = document.createElement('div');
       div.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
-      div.innerHTML = `<img src="${url}" />`;
+      const extraClass = isDarkenAvatar(idx) ? 'avatar-darken-bg' : '';
+      div.innerHTML = `<img class="${extraClass}" src="${url}" />`;
       div.onclick = () => {
         playTouchSFX();
         document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
@@ -626,9 +643,6 @@
       avatarGridEl.appendChild(div);
     });
 
-    // -------------------------------------------------------------------
-    // AUDIO STATE GUARDS (PREVENTS ACCIDENTAL UNMUTE)
-    // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -934,17 +948,19 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
+    // LEADERBOARD RENDER: Player, Win, Loss, Points, Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
       tbody.innerHTML = sorted.map((row, idx) => {
         const matchPts = latestMatchPoints[row.avatarIndex] !== undefined ? latestMatchPoints[row.avatarIndex] : 0;
+        const extraClass = isDarkenAvatar(row.avatarIndex) ? 'avatar-darken-bg' : '';
         return `
           <tr>
             <td>
               <div class="lb-player-cell">
                 <span class="gold-text" style="font-size:0.78rem;">#${idx + 1}</span>
-                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
+                <img class="${extraClass}" src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700; background:#000;" />
                 <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
               </div>
             </td>
@@ -1048,12 +1064,15 @@
         showScreen('screen-lobby');
         document.getElementById('lobbyRoomCode').textContent = room.roomId;
         document.getElementById('playerCount').textContent = room.players.length;
-        document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => 
-          `<li style="padding: 6px 0; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <img src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700;" />
-            <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''}</span>
-          </li>`
-        ).join('');
+        document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => {
+          const extraClass = isDarkenAvatar(p.avatar || 0) ? 'avatar-darken-bg' : '';
+          return `
+            <li style="padding: 6px 0; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+              <img class="${extraClass}" src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700; background:#000;" />
+              <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''}</span>
+            </li>
+          `;
+        }).join('');
         if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
         else document.getElementById('startGameBtn').classList.add('hidden');
       }
@@ -1123,16 +1142,19 @@
         document.getElementById('partyModal').classList.remove('hidden');
         startFireworksShow();
 
-        const crownedHTML = god.winningPlayers.map(w => `
-          <div class="crowned-avatar-card">
-            <div class="crown-wrapper">
-              <span class="golden-crown-icon">👑</span>
-              <img class="winner-avatar" src="${AVATAR_LIST[w.avatar || 0]}" />
+        const crownedHTML = god.winningPlayers.map(w => {
+          const extraClass = isDarkenAvatar(w.avatar || 0) ? 'avatar-darken-bg' : '';
+          return `
+            <div class="crowned-avatar-card">
+              <div class="crown-wrapper">
+                <span class="golden-crown-icon">👑</span>
+                <img class="winner-avatar ${extraClass}" src="${AVATAR_LIST[w.avatar || 0]}" />
+              </div>
+              <div class="winner-name-tag">${w.name}</div>
+              <div class="winner-pts-tag">+${w.points} Pts</div>
             </div>
-            <div class="winner-name-tag">${w.name}</div>
-            <div class="winner-pts-tag">+${w.points} Pts</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
         document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
