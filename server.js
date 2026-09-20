@@ -227,6 +227,18 @@ io.on('connection', (socket) => {
     });
   });
 
+  // HOST END CLUES & GO TO VOTING DIRECTLY
+  socket.on('end_clues_early', () => {
+    const room = rooms[socket.roomId];
+    if (!room || room.hostId !== socket.playerId) return;
+    if (room.state !== 'CLUE_PHASE') return;
+
+    room.state = 'VOTING_PHASE';
+    room.players.forEach(p => {
+      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
+    });
+  });
+
   socket.on('submit_vote', ({ suspectId, reason }) => {
     const room = rooms[socket.roomId];
     if (!room || room.state !== 'VOTING_PHASE') return;
