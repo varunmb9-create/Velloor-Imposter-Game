@@ -277,7 +277,6 @@
       animation: pulse 1s infinite;
     }
 
-    /* FULLSCREEN PARTY MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -441,15 +440,15 @@
 
   <div class="audio-controls">
     <button class="sound-btn" onclick="openLeaderboard()">🏆 Board</button>
-    <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music</button>
-    <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX</button>
+    <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music: ON</button>
+    <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
   </div>
 
   <canvas id="dragonCanvas"></canvas>
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- LEADERBOARD MODAL: ORDER = Player, Win, Loss, Points, Grand Total -->
+  <!-- LEADERBOARD MODAL -->
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -610,7 +609,7 @@
     ];
 
     let selectedAvatarIndex = 0;
-    let latestMatchPoints = {}; // Maps avatarIndex to points in current match
+    let latestMatchPoints = {};
 
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
@@ -622,29 +621,37 @@
         document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
         div.classList.add('selected');
         selectedAvatarIndex = idx;
-        startBGM();
+        tryPlayBGMOnFirstTouch();
       };
       avatarGridEl.appendChild(div);
     });
 
+    // -------------------------------------------------------------------
+    // AUDIO STATE GUARDS (PREVENTS ACCIDENTAL UNMUTE)
+    // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
-    let sfxEnabled = true;
 
-    function startBGM() {
-      try {
-        if (bgmAudio.paused) {
+    let bgmEnabled = true;
+    let sfxEnabled = true;
+    let userHasInteracted = false;
+
+    function tryPlayBGMOnFirstTouch() {
+      if (!userHasInteracted) {
+        userHasInteracted = true;
+        if (bgmEnabled && bgmAudio.paused) {
           bgmAudio.volume = 0.5;
-          const promise = bgmAudio.play();
-          if (promise !== undefined) promise.catch(e => {});
+          bgmAudio.play().catch(e => {});
         }
-      } catch (err) {}
+      }
     }
 
     function toggleBGM() {
       playTouchSFX();
       const btn = document.getElementById('soundToggleBtn');
-      if (bgmAudio.paused) {
+      bgmEnabled = !bgmEnabled;
+
+      if (bgmEnabled) {
         bgmAudio.volume = 0.5;
         bgmAudio.play().catch(e => {});
         btn.textContent = '🔊 Music: ON';
@@ -687,6 +694,7 @@
     }
 
     document.addEventListener('click', (e) => {
+      tryPlayBGMOnFirstTouch();
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
         playTouchSFX();
       }
@@ -926,9 +934,7 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
-    // LEADERBOARD RENDER: Player, Win, Loss, Points, Grand Total (Highest Points on top)
     socket.on('leaderboard_update', (board) => {
-      // Sort highest points/grand total to the top
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
       tbody.innerHTML = sorted.map((row, idx) => {
@@ -986,7 +992,7 @@
     });
 
     function createRoom() {
-      startBGM();
+      tryPlayBGMOnFirstTouch();
       const name = document.getElementById('playerName').value.trim();
       if (!name) return alert('Enter your nickname');
       
@@ -1001,7 +1007,7 @@
     }
 
     function joinRoom() {
-      startBGM();
+      tryPlayBGMOnFirstTouch();
       const name = document.getElementById('playerName').value.trim();
       const code = document.getElementById('roomCodeInput').value.trim();
       if (!name || !code) return alert('Enter both name and 4-letter code');
@@ -1107,7 +1113,6 @@
         showScreen('screen-results');
         const god = room.gameOverData;
 
-        // Cache points gained in this match for leaderboard
         latestMatchPoints = {};
         if (god.winningPlayers) {
           god.winningPlayers.forEach(w => {
