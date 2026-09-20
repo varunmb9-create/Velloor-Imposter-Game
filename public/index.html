@@ -28,7 +28,6 @@
       position: relative;
     }
 
-    /* 3D DRAGON FLYOVER LAYER (BEHIND BOX) */
     #dragonCanvas {
       position: fixed;
       top: 0;
@@ -39,7 +38,6 @@
       z-index: 1;
     }
 
-    /* Flame Burst Screen Glow */
     #flameGlow {
       position: fixed;
       top: 0;
@@ -53,7 +51,6 @@
       transition: opacity 0.25s ease-out;
     }
 
-    /* Live Animated Flame Heading */
     .title-wrapper {
       text-align: center;
       margin-bottom: 16px;
@@ -75,7 +72,6 @@
       100% { filter: drop-shadow(0 0 6px #ff0000) drop-shadow(0 0 18px #ff7b00); transform: scale(0.99) skewX(1deg); }
     }
 
-    /* Main Container (Over Dragon) */
     .container {
       position: relative;
       z-index: 10;
@@ -138,7 +134,6 @@
 
     .hidden { display: none !important; }
 
-    /* 8-Avatar Selector Grid */
     .avatar-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -243,7 +238,6 @@
       100% { transform: scale(1); }
     }
 
-    /* FULL-SCREEN GRAND CELEBRATION MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -261,7 +255,6 @@
       padding: 20px;
     }
 
-    /* 3D Tilting Shining Gold Trophy */
     .trophy-container {
       perspective: 800px;
       margin-bottom: 20px;
@@ -305,11 +298,9 @@
 </head>
 <body>
 
-  <!-- Dragon Animation Canvas Behind Card -->
   <canvas id="dragonCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- Fullscreen Celebration Modal -->
   <div id="partyModal" class="hidden">
     <canvas id="confettiCanvas"></canvas>
     <div class="trophy-container">
@@ -353,7 +344,7 @@
       <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN (3 ROUNDS) -->
+    <!-- 3. GAMEPLAY SCREEN -->
     <div id="screen-game" class="hidden">
       <div class="badge-bar">
         <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
@@ -431,7 +422,6 @@
   <script>
     const socket = io();
 
-    // 8 CUSTOM AVATARS FROM POSTIMAGES
     const AVATAR_LIST = [
       'https://i.postimg.cc/9R4txjzB/1789934119807.png',
       'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
@@ -445,7 +435,6 @@
 
     let selectedAvatarIndex = 0;
 
-    // Render Avatar Grid
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
       const div = document.createElement('div');
@@ -459,9 +448,6 @@
       avatarGridEl.appendChild(div);
     });
 
-    // -------------------------------------------------------------
-    // WEB AUDIO SOUND EFFECTS (Wings flap & Flame Roar)
-    // -------------------------------------------------------------
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playWingFlapSFX() {
@@ -506,9 +492,6 @@
       noise.stop(audioCtx.currentTime + 1.5);
     }
 
-    // -------------------------------------------------------------
-    // LIVE DRAGON ANIMATION ENGINE (Behind Card Every 10 Seconds)
-    // -------------------------------------------------------------
     const canvas = document.getElementById('dragonCanvas');
     const ctx = canvas.getContext('2d');
     function resizeCanvas() {
@@ -571,7 +554,6 @@
       ctx.closePath();
       ctx.fill();
 
-      // "VELLOOR" Golden Collar
       ctx.fillStyle = '#ffd700';
       ctx.fillRect(26, -16, 18, 10);
       ctx.fillStyle = '#000';
@@ -612,9 +594,6 @@
 
     setInterval(spawnDragon, 10000);
 
-    // -------------------------------------------------------------
-    // CONFETTI ENGINE FOR PARTY MODAL
-    // -------------------------------------------------------------
     const confCanvas = document.getElementById('confettiCanvas');
     const confCtx = confCanvas.getContext('2d');
     let confettiParticles = [];
@@ -653,9 +632,6 @@
       document.getElementById('partyModal').classList.add('hidden');
     }
 
-    // -------------------------------------------------------------
-    // SOCKET & CLIENT STATE ENGINE
-    // -------------------------------------------------------------
     let playerId = localStorage.getItem('velloor_player_id');
     if (!playerId) {
       playerId = 'p_' + Math.random().toString(36).substring(2, 10);
