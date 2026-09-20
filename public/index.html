@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTER IN VELLOOR</title>
+
   <script src="/socket.io/socket.io.js"></script>
   <style>
     :root {
@@ -161,9 +162,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(211, 47, 47, 0.45);
     }
-    .danger-btn:active { transform: scale(0.98); }
 
     input, textarea, select {
       width: 100%;
@@ -175,10 +174,6 @@
       color: #fff;
       font-size: 0.95rem;
       outline: none;
-    }
-    input:focus, textarea:focus, select:focus {
-      border-color: #ffd700;
-      box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
     }
 
     .hidden { display: none !important; }
@@ -281,12 +276,8 @@
       text-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
       animation: pulse 1s infinite;
     }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-      100% { transform: scale(1); }
-    }
 
+    /* FULLSCREEN PARTY MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -306,11 +297,11 @@
 
     .trophy-container {
       perspective: 800px;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
     .gold-trophy {
-      width: 130px;
-      height: 165px;
+      width: 120px;
+      height: 155px;
       background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 50%, #fbf5b7 80%, #aa771c 100%);
       clip-path: polygon(15% 0%, 85% 0%, 100% 40%, 75% 65%, 60% 65%, 60% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 40% 85%, 40% 65%, 25% 65%, 0% 40%);
       position: relative;
@@ -325,7 +316,7 @@
       top: 28%;
       color: #241400;
       font-weight: 900;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       letter-spacing: 3px;
       text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
     }
@@ -339,8 +330,8 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 16px;
-      margin: 14px 0 20px 0;
+      gap: 14px;
+      margin: 10px 0 16px 0;
       max-width: 90vw;
     }
     .crowned-avatar-card {
@@ -351,9 +342,9 @@
     }
     .crown-wrapper {
       position: relative;
-      width: 72px;
-      height: 72px;
-      margin-top: 18px;
+      width: 68px;
+      height: 68px;
+      margin-top: 16px;
     }
     .crown-wrapper img.winner-avatar {
       width: 100%;
@@ -365,10 +356,10 @@
     }
     .golden-crown-icon {
       position: absolute;
-      top: -20px;
+      top: -18px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 1.75rem;
+      font-size: 1.6rem;
       filter: drop-shadow(0 0 8px #ffd700);
       animation: crownBounce 2s infinite ease-in-out;
     }
@@ -378,49 +369,118 @@
       100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
     }
     .winner-name-tag {
-      margin-top: 6px;
+      margin-top: 4px;
       font-weight: 800;
       color: #ffd700;
-      font-size: 0.9rem;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      font-size: 0.88rem;
     }
-    .winner-role-tag {
-      font-size: 0.72rem;
-      color: #ccc;
+    .winner-pts-tag {
+      font-size: 0.76rem;
+      color: #76ff03;
+      font-weight: bold;
+    }
+
+    /* LEADERBOARD MODAL */
+    #leaderboardModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(12px);
+      z-index: 1005;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .lb-card {
+      background: #120e1a;
+      border: 1px solid var(--gold-border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 480px;
+      padding: 18px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.82rem;
+    }
+    .lb-table th {
+      color: #ffd700;
+      text-align: center;
+      padding: 8px 4px;
+      border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .lb-table td {
+      padding: 8px 4px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: center;
+    }
+    .lb-player-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
     }
   </style>
 </head>
 <body>
 
-  <!-- BGM AUDIO: 50% VOLUME WITH LOOP -->
   <audio id="bgmAudio" loop preload="auto">
     <source src="https://files.catbox.moe/9p8ij0.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- CONTROLS -->
   <div class="audio-controls">
-    <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music: ON</button>
-    <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
+    <button class="sound-btn" onclick="openLeaderboard()">🏆 Board</button>
+    <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music</button>
+    <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX</button>
   </div>
 
   <canvas id="dragonCanvas"></canvas>
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- CELEBRATION MODAL -->
+  <!-- LEADERBOARD MODAL: ORDER = Player, Win, Loss, Points, Grand Total -->
+  <div id="leaderboardModal" class="hidden">
+    <div class="lb-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="gold-text" style="font-size: 1.25rem;">LEADERBOARD</h2>
+        <button class="sound-btn" onclick="closeLeaderboard()">✕</button>
+      </div>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Player</th>
+            <th>Win</th>
+            <th>Loss</th>
+            <th style="color:#00e5ff;">Points</th>
+            <th style="color:#76ff03;">Grand Total</th>
+          </tr>
+        </thead>
+        <tbody id="lbTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
   <div id="partyModal" class="hidden">
     <div class="trophy-container">
       <div class="gold-trophy">
         <div class="trophy-text">VELLOOR</div>
       </div>
     </div>
-    
-    <h1 id="partyHeader" style="font-size: 1.8rem; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8); margin-bottom: 6px;"></h1>
-    <p id="partySub" class="silver-text" style="font-size: 0.95rem; max-width: 380px; line-height: 1.35;"></p>
-
+    <h1 id="partyHeader" style="font-size: 1.7rem; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);"></h1>
+    <p id="partySub" class="silver-text" style="font-size: 0.95rem; max-width: 380px;"></p>
     <div id="crownedWinnersList" class="crowned-winners-container"></div>
-
-    <button class="gold-btn" style="max-width: 250px;" onclick="closePartyModal()">View Detailed Breakdown</button>
+    <button class="gold-btn" style="max-width: 260px;" onclick="closePartyModal()">View Detailed Breakdown</button>
   </div>
 
   <div class="container">
@@ -485,7 +545,6 @@
         Awaiting other players' clues...
       </p>
 
-      <!-- HOST DIRECT TO VOTING BUTTON -->
       <button id="endCluesEarlyBtn" class="danger-btn hidden" onclick="endCluesEarly()">End Clues & Vote Now (Host)</button>
     </div>
 
@@ -521,7 +580,7 @@
       </div>
 
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--gold-border); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <div class="gold-text" style="font-size: 0.85rem; margin-bottom: 8px;">CROWNED WINNERS:</div>
+        <div class="gold-text" style="font-size: 0.85rem; margin-bottom: 8px;">CROWNED WINNERS & POINTS:</div>
         <div id="screenResultsCrownedWinners" class="crowned-winners-container" style="margin: 0 0 10px 0;"></div>
       </div>
 
@@ -551,6 +610,7 @@
     ];
 
     let selectedAvatarIndex = 0;
+    let latestMatchPoints = {}; // Maps avatarIndex to points in current match
 
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
@@ -567,9 +627,6 @@
       avatarGridEl.appendChild(div);
     });
 
-    // -------------------------------------------------------------------
-    // AUDIO ENGINE & PREMIUM TOUCH SOUND
-    // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
     let sfxEnabled = true;
@@ -579,9 +636,7 @@
         if (bgmAudio.paused) {
           bgmAudio.volume = 0.5;
           const promise = bgmAudio.play();
-          if (promise !== undefined) {
-            promise.catch(e => console.log('BGM waiting on tap'));
-          }
+          if (promise !== undefined) promise.catch(e => {});
         }
       } catch (err) {}
     }
@@ -613,7 +668,6 @@
       return sfxCtx;
     }
 
-    // Low-volume high-end tactile tap click
     function playTouchSFX() {
       if (!sfxEnabled) return;
       try {
@@ -623,7 +677,7 @@
         osc.type = 'sine';
         osc.frequency.setValueAtTime(1400, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(450, ctx.currentTime + 0.035);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime); // Low, subtle volume
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
         osc.connect(gain);
         gain.connect(ctx.destination);
@@ -632,7 +686,6 @@
       } catch (e) {}
     }
 
-    // Attach premium click to all buttons automatically
     document.addEventListener('click', (e) => {
       if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
         playTouchSFX();
@@ -715,9 +768,6 @@
       } catch (e) {}
     }
 
-    // -------------------------------------------------------------------
-    // DRAGON ANIMATION
-    // -------------------------------------------------------------------
     const canvas = document.getElementById('dragonCanvas');
     const dctx = canvas.getContext('2d');
     function resizeCanvas() {
@@ -796,9 +846,6 @@
 
     setInterval(spawnDragon, 5000);
 
-    // -------------------------------------------------------------------
-    // FIREWORKS
-    // -------------------------------------------------------------------
     const fwCanvas = document.getElementById('fireworksCanvas');
     const fwCtx = fwCanvas.getContext('2d');
     let fireworks = [];
@@ -870,9 +917,40 @@
       document.getElementById('partyModal').classList.add('hidden');
     }
 
-    // -------------------------------------------------------------------
-    // SOCKET STATE & CLIENT LOGIC
-    // -------------------------------------------------------------------
+    function openLeaderboard() {
+      document.getElementById('leaderboardModal').classList.remove('hidden');
+      socket.emit('get_leaderboard');
+    }
+
+    function closeLeaderboard() {
+      document.getElementById('leaderboardModal').classList.add('hidden');
+    }
+
+    // LEADERBOARD RENDER: Player, Win, Loss, Points, Grand Total (Highest Points on top)
+    socket.on('leaderboard_update', (board) => {
+      // Sort highest points/grand total to the top
+      const sorted = [...board].sort((a, b) => b.points - a.points);
+      const tbody = document.getElementById('lbTableBody');
+      tbody.innerHTML = sorted.map((row, idx) => {
+        const matchPts = latestMatchPoints[row.avatarIndex] !== undefined ? latestMatchPoints[row.avatarIndex] : 0;
+        return `
+          <tr>
+            <td>
+              <div class="lb-player-cell">
+                <span class="gold-text" style="font-size:0.78rem;">#${idx + 1}</span>
+                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
+                <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
+              </div>
+            </td>
+            <td style="color:#ffd700; font-weight:700;">${row.wins}</td>
+            <td style="color:#ff6b6b; font-weight:700;">${row.losses}</td>
+            <td style="color:#00e5ff; font-weight:700;">+${matchPts}</td>
+            <td style="color:#76ff03; font-weight:800; font-size:0.95rem;">${row.points}</td>
+          </tr>
+        `;
+      }).join('');
+    });
+
     let playerId = localStorage.getItem('velloor_player_id');
     if (!playerId) {
       playerId = 'p_' + Math.random().toString(36).substring(2, 10);
@@ -1009,7 +1087,6 @@
           document.getElementById('waitTurnMsg').classList.remove('hidden');
         }
 
-        // Host can end clues early
         if (isHost) {
           document.getElementById('endCluesEarlyBtn').classList.remove('hidden');
         } else {
@@ -1030,6 +1107,14 @@
         showScreen('screen-results');
         const god = room.gameOverData;
 
+        // Cache points gained in this match for leaderboard
+        latestMatchPoints = {};
+        if (god.winningPlayers) {
+          god.winningPlayers.forEach(w => {
+            latestMatchPoints[w.avatar] = w.points;
+          });
+        }
+
         document.getElementById('partyModal').classList.remove('hidden');
         startFireworksShow();
 
@@ -1040,7 +1125,7 @@
               <img class="winner-avatar" src="${AVATAR_LIST[w.avatar || 0]}" />
             </div>
             <div class="winner-name-tag">${w.name}</div>
-            <div class="winner-role-tag">${w.title}</div>
+            <div class="winner-pts-tag">+${w.points} Pts</div>
           </div>
         `).join('');
 
@@ -1049,10 +1134,10 @@
 
         if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified!<br>Every detective who found them is awarded the Golden Trophy!`;
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to the detectives below:`;
         } else {
-          document.getElementById('partyHeader').textContent = 'IMPOSTOR & TRUE DETECTIVES!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived!<br>Crowned heroes are honored below:`;
+          document.getElementById('partyHeader').textContent = 'IMPOSTOR & DETECTIVES WIN!';
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived! Ranked points awarded below:`;
         }
 
         const verdictEl = document.getElementById('finalVerdict');
