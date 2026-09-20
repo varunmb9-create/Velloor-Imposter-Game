@@ -1,13 +1,78 @@
 [
   {
-    "category": "Food & Feasts",
+    "category": "Feasts & Food",
     "word": "Hyderabadi Biryani",
     "image": "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=600"
   },
   {
-    "category": "Landmarks",
+    "category": "Historic Wonders",
     "word": "Taj Mahal",
     "image": "https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600"
+  },
+  {
+    "category": "Street Food",
+    "word": "Masala Dosa",
+    "image": "https://images.unsplash.com/photo-1668236543090-82eba5ee5976?w=600"
+  },
+  {
+    "category": "Predators",
+    "word": "Royal Bengal Tiger",
+    "image": "https://images.unsplash.com/photo-1549480017-d76466a4b7e8?w=600"
+  },
+  {
+    "category": "Aviation",
+    "word": "Helicopter",
+    "image": "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600"
+  },
+  {
+    "category": "Smart Tech",
+    "word": "Smart Watch",
+    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"
+  },
+  {
+    "category": "Forces of Nature",
+    "word": "Volcano",
+    "image": "https://images.unsplash.com/photo-1508873696983-2df5703bc20d?w=600"
+  },
+  {
+    "category": "Sports",
+    "word": "Cricket",
+    "image": "https://images.unsplash.com/photo-1531415074868-036b1c57e329?w=600"
+  },
+  {
+    "category": "Sweet Treats",
+    "word": "Chocolate Ice Cream",
+    "image": "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600"
+  },
+  {
+    "category": "Ocean Giants",
+    "word": "Blue Whale",
+    "image": "https://images.unsplash.com/photo-1570481662006-a3a1374699e8?w=600"
+  },
+  {
+    "category": "Fashion",
+    "word": "Sunglasses",
+    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600"
+  },
+  {
+    "category": "Instruments",
+    "word": "Acoustic Guitar",
+    "image": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600"
+  },
+  {
+    "category": "Space Exploration",
+    "word": "Astronaut",
+    "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600"
+  },
+  {
+    "category": "Ancient Monuments",
+    "word": "Egyptian Pyramids",
+    "image": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=600"
+  },
+  {
+    "category": "Hot Drinks",
+    "word": "Filter Coffee",
+    "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600"
   },
   {
     "category": "Fast Food",
@@ -15,68 +80,48 @@
     "image": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600"
   },
   {
-    "category": "Wild Predators",
-    "word": "Bengal Tiger",
-    "image": "https://images.unsplash.com/photo-1549480017-d76466a4b7e8?w=600"
-  },
-  {
-    "category": "Aviation",
-    "word": "Combat Helicopter",
-    "image": "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600"
-  },
-  {
-    "category": "Gadgets",
-    "word": "Smart Watch",
-    "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600"
-  },
-  {
-    "category": "Natural Wonders",
-    "word": "Erupting Volcano",
-    "image": "https://images.unsplash.com/photo-1508873696983-2df5703bc20d?w=600"
-  },
-  {
-    "category": "Gentle Giants",
-    "word": "Wild Elephant",
+    "category": "Wild Animals",
+    "word": "African Elephant",
     "image": "https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=600"
   },
   {
     "category": "Sports",
-    "word": "Cricket Bat & Ball",
-    "image": "https://images.unsplash.com/photo-1531415074868-036b1c57e329?w=600"
+    "word": "Football",
+    "image": "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=600"
   },
   {
-    "category": "Sweets",
-    "word": "Chocolate Ice Cream",
-    "image": "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600"
+    "category": "Vehicles",
+    "word": "Superbike",
+    "image": "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600"
   },
   {
-    "category": "Marine Life",
-    "word": "Blue Whale",
-    "image": "https://images.unsplash.com/photo-1570481662006-a3a1374699e8?w=600"
+    "category": "Landmarks",
+    "word": "Colosseum",
+    "image": "https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=600"
   },
   {
-    "category": "Apparel",
-    "word": "Aviator Sunglasses",
-    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=600"
+    "category": "Gadgets",
+    "word": "Drone Camera",
+    "image": "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?w=600"
   },
   {
-    "category": "Music",
-    "word": "Electric Guitar",
-    "image": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600"
+    "category": "Bakery",
+    "word": "Glazed Doughnut",
+    "image": "https://images.unsplash.com/photo-1527904324834-3bda86da6771?w=600"
   },
   {
-    "category": "Cosmos",
-    "word": "Astronaut in Orbit",
-    "image": "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600"
+    "category": "Nature",
+    "word": "Waterfall",
+    "image": "https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=600"
   },
   {
-    "category": "Historic Wonders",
-    "word": "Egyptian Pyramids",
-    "image": "https://images.unsplash.com/photo-1503177119275-0aa32b3a9368?w=600"
+    "category": "Reptiles",
+    "word": "Chameleon",
+    "image": "https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=600"
   },
   {
-    "category": "Beverages",
-    "word": "Hot Espresso",
-    "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600"
+    "category": "Clothing",
+    "word": "Leather Jacket",
+    "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600"
   }
 ]
