@@ -1,0 +1,22 @@
+[
+  {
+    "category": "Landmarks",
+    "word": "Eiffel Tower",
+    "image": "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=600"
+  },
+  {
+    "category": "Animals",
+    "word": "Red Panda",
+    "image": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600"
+  },
+  {
+    "category": "Vehicles",
+    "word": "Submarine",
+    "image": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600"
+  },
+  {
+    "category": "Food",
+    "word": "Sushi",
+    "image": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600"
+  }
+]
