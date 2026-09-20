@@ -10,6 +10,34 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// LEADERBOARD PERSISTENCE
+const LEADERBOARD_FILE = path.join(__dirname, 'leaderboard.json');
+
+function initLeaderboard() {
+  if (fs.existsSync(LEADERBOARD_FILE)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8'));
+      if (Array.isArray(data) && data.length === 8) return data;
+    } catch (e) {}
+  }
+  const defaultBoard = [];
+  for (let i = 0; i < 8; i++) {
+    defaultBoard.push({ avatarIndex: i, matches: 0, wins: 0, losses: 0, points: 0 });
+  }
+  saveLeaderboard(defaultBoard);
+  return defaultBoard;
+}
+
+function saveLeaderboard(board) {
+  try {
+    fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(board, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving leaderboard', e);
+  }
+}
+
+let avatarLeaderboard = initLeaderboard();
+
 function loadAllDecks() {
   try {
     const raw = fs.readFileSync(path.join(__dirname, 'words.json'), 'utf8');
@@ -76,6 +104,12 @@ function getSanitizedRoom(room, forPlayerId) {
 }
 
 io.on('connection', (socket) => {
+  socket.emit('leaderboard_update', avatarLeaderboard);
+
+  socket.on('get_leaderboard', () => {
+    socket.emit('leaderboard_update', avatarLeaderboard);
+  });
+
   socket.on('resume_session', ({ roomId, playerId }) => {
     const room = rooms[roomId];
     if (!room) return socket.emit('session_resume_failed');
@@ -227,7 +261,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // HOST END CLUES & GO TO VOTING DIRECTLY
   socket.on('end_clues_early', () => {
     const room = rooms[socket.roomId];
     if (!room || room.hostId !== socket.playerId) return;
@@ -295,28 +328,99 @@ io.on('connection', (socket) => {
           const impostorCaught = !isTie && (accusedId === impostor.id);
 
           const winningPlayers = [];
-          Object.values(room.votes).forEach(v => {
-            if (v.suspectId === impostor.id) {
-              const voter = room.players.find(p => p.id === v.voterId);
-              if (voter && !winningPlayers.some(w => w.id === voter.id)) {
-                winningPlayers.push({
-                  id: voter.id,
-                  name: voter.name,
-                  avatar: voter.avatar,
-                  title: 'Eagle-Eyed Detective'
-                });
-              }
-            }
-          });
+          const runnerUpPlayers = [];
+          const remainingPlayers = [];
 
-          if (!impostorCaught) {
-            winningPlayers.unshift({
-              id: impostor.id,
-              name: impostor.name,
-              avatar: impostor.avatar,
-              title: 'The Master Impostor'
+          if (impostorCaught) {
+            // Correct guessers are 1st tier (Winners)
+            room.players.forEach(p => {
+              const myVote = room.votes[p.id];
+              if (myVote && myVote.suspectId === impostor.id) {
+                winningPlayers.push(p);
+              } else if (p.id !== impostor.id) {
+                runnerUpPlayers.push(p);
+              } else {
+                remainingPlayers.push(p);
+              }
+            });
+          } else {
+            // Impostor is 1st tier (Winner)
+            winningPlayers.push(impostor);
+            // Citizens who identified impostor despite majority failing are 2nd tier
+            room.players.forEach(p => {
+              if (p.id !== impostor.id) {
+                const myVote = room.votes[p.id];
+                if (myVote && myVote.suspectId === impostor.id) {
+                  runnerUpPlayers.push(p);
+                } else {
+                  remainingPlayers.push(p);
+                }
+              }
             });
           }
+
+          const playerPointsAwarded = {};
+
+          // 1st Place Tier (100 pts split equally)
+          const winShare = winningPlayers.length > 0 ? Math.round(100 / winningPlayers.length) : 100;
+          winningPlayers.forEach(p => playerPointsAwarded[p.id] = winShare);
+
+          // 2nd Place Tier (75 pts split equally)
+          const runnerShare = runnerUpPlayers.length > 0 ? Math.round(75 / runnerUpPlayers.length) : 75;
+          runnerUpPlayers.forEach(p => playerPointsAwarded[p.id] = runnerShare);
+
+          // 3rd through 8th Tiers: Group by votes received and split tied points equally
+          const rankPointTiers = [50, 30, 20, 10, 5, 0];
+
+          // Sort remaining players by accusations received descending
+          remainingPlayers.sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+
+          let tierIndex = 0;
+          let i = 0;
+          while (i < remainingPlayers.length) {
+            const currentVotes = counts[remainingPlayers[i].id] || 0;
+            // Find all players tied with the same vote count
+            const tiedGroup = [];
+            while (i < remainingPlayers.length && (counts[remainingPlayers[i].id] || 0) === currentVotes) {
+              tiedGroup.push(remainingPlayers[i]);
+              i++;
+            }
+
+            // Pool the points for each position this tied group spans
+            let totalPointsToSplit = 0;
+            for (let k = 0; k < tiedGroup.length; k++) {
+              const currentTierPts = rankPointTiers[tierIndex + k] !== undefined ? rankPointTiers[tierIndex + k] : 0;
+              totalPointsToSplit += currentTierPts;
+            }
+
+            const splitShare = Math.round(totalPointsToSplit / tiedGroup.length);
+            tiedGroup.forEach(p => playerPointsAwarded[p.id] = splitShare);
+
+            tierIndex += tiedGroup.length;
+          }
+
+          // Update Leaderboard Stats
+          room.players.forEach(p => {
+            const avIndex = p.avatar !== undefined ? p.avatar : 0;
+            const stats = avatarLeaderboard[avIndex];
+            if (stats) {
+              stats.matches += 1;
+              const isWin = winningPlayers.some(w => w.id === p.id);
+              if (isWin) stats.wins += 1;
+              else stats.losses += 1;
+              stats.points += (playerPointsAwarded[p.id] || 0);
+            }
+          });
+          saveLeaderboard(avatarLeaderboard);
+          io.emit('leaderboard_update', avatarLeaderboard);
+
+          const formattedWinners = winningPlayers.map(w => ({
+            id: w.id,
+            name: w.name,
+            avatar: w.avatar,
+            points: playerPointsAwarded[w.id] || 0,
+            title: w.id === impostor.id ? 'The Master Impostor' : 'Eagle-Eyed Detective'
+          }));
 
           const detailedVotes = Object.values(room.votes).map(v => {
             const voter = room.players.find(p => p.id === v.voterId);
@@ -334,7 +438,7 @@ io.on('connection', (socket) => {
             impostorName: impostor.name,
             secretWord: room.currentCard.word,
             secretCategory: room.currentCard.category,
-            winningPlayers,
+            winningPlayers: formattedWinners,
             detailedVotes
           };
 
