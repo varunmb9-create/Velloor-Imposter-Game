@@ -28,7 +28,7 @@ function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [arr[j], arr[i]] = [arr[i], arr[j]];
   }
   return arr;
 }
@@ -38,7 +38,9 @@ const rooms = {};
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
   return code;
 }
 
@@ -157,7 +159,9 @@ io.on('connection', (socket) => {
   socket.on('start_game', () => {
     const room = rooms[socket.roomId];
     if (!room || room.hostId !== socket.playerId) return;
-    if (room.players.length < 3) return socket.emit('error_message', 'At least 3 players required.');
+    if (room.players.length < 3) {
+      return socket.emit('error_message', 'At least 3 players required.');
+    }
 
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = shuffleArray(loadAllDecks());
@@ -184,17 +188,6 @@ io.on('connection', (socket) => {
     room.votes = {};
     room.gameOverData = null;
 
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
-  });
-
-  // Host forcefully ends clue rounds early to vote immediately
-  socket.on('force_end_to_voting', () => {
-    const room = rooms[socket.roomId];
-    if (!room || room.hostId !== socket.playerId || room.state !== 'CLUE_PHASE') return;
-
-    room.state = 'VOTING_PHASE';
     room.players.forEach(p => {
       io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
     });
@@ -289,20 +282,30 @@ io.on('connection', (socket) => {
           const impostor = room.players.find(p => p.role === 'IMPOSTOR');
           const impostorCaught = !isTie && (accusedId === impostor.id);
 
-          // All players who identified the impostor win trophies
-          const correctDetectives = [];
+          // All detectives who spotted the impostor
+          const winningPlayers = [];
           Object.values(room.votes).forEach(v => {
             if (v.suspectId === impostor.id) {
               const voter = room.players.find(p => p.id === v.voterId);
-              if (voter && !correctDetectives.includes(voter.name)) {
-                correctDetectives.push(voter.name);
+              if (voter && !winningPlayers.some(w => w.id === voter.id)) {
+                winningPlayers.push({
+                  id: voter.id,
+                  name: voter.name,
+                  avatar: voter.avatar,
+                  title: 'Eagle-Eyed Detective'
+                });
               }
             }
           });
 
-          const winners = [...correctDetectives];
+          // If impostor evaded the majority vote
           if (!impostorCaught) {
-            winners.unshift(impostor.name + ' (The Impostor)');
+            winningPlayers.unshift({
+              id: impostor.id,
+              name: impostor.name,
+              avatar: impostor.avatar,
+              title: 'The Master Impostor'
+            });
           }
 
           const detailedVotes = Object.values(room.votes).map(v => {
@@ -321,8 +324,7 @@ io.on('connection', (socket) => {
             impostorName: impostor.name,
             secretWord: room.currentCard.word,
             secretCategory: room.currentCard.category,
-            winners,
-            correctDetectives,
+            winningPlayers,
             detailedVotes
           };
 
