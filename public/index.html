@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTER IN VELLOOR</title>
 
-  <!-- 1. WHATSAPP & SOCIAL PREVIEWS (DIRECT SAME-ORIGIN HTTPS ASSETS) -->
+  <!-- 1. WHATSAPP & SOCIAL PREVIEWS -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Imposter in Velloor" />
   <meta property="og:title" content="⚔️ IMPOSTER IN VELLOOR 🐉" />
@@ -236,7 +236,7 @@
       transform: scale(1.06);
     }
 
-    /* 8 DIVERSE KINETIC ANIMATIONS */
+    /* 8 AVATAR TAP KINETIC MOTIONS */
     @keyframes move-avatar-0 {
       0% { transform: translateY(0); }
       30% { transform: translateY(-12px); }
@@ -695,7 +695,6 @@
   </div>
 
   <script>
-    // PWA Service Worker Registration
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration error:', err));
@@ -704,7 +703,8 @@
 
     const socket = io();
 
-    const DRAGON_IMG_SRC = 'https://i.postimg.cc/3krTk3LM/1000129477.png';
+    // NEW DRAGON IMAGE LINK
+    const DRAGON_IMG_SRC = 'https://i.postimg.cc/xq96mgrm/1000129477.png';
     const dragonImage = new Image();
     dragonImage.src = DRAGON_IMG_SRC;
 
@@ -940,12 +940,7 @@
         dctx.drawImage(dragonImage, -d.width / 2, -d.height / 2, d.width, d.height);
       }
 
-      dctx.fillStyle = '#ffd700';
-      dctx.fillRect(16, -14, 28, 12);
-      dctx.fillStyle = '#000';
-      dctx.font = 'bold 8px sans-serif';
-      dctx.fillText('VELLOOR', 18, -5);
-
+      // Spit flame in middle
       if (!d.flameDone && d.x > canvas.width * 0.25 && d.x < canvas.width * 0.75) {
         d.flameDone = true;
         playFlameSFX();
