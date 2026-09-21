@@ -160,6 +160,7 @@ io.on('connection', (socket) => {
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
       deckPool: secureShuffle(masterDeck),
+      impostorHistory: [], // Tracks past impostor IDs to prevent 3-in-a-row lockups
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -215,13 +216,36 @@ io.on('connection', (socket) => {
   });
 
   function executeStartMatch(room) {
+    // 1. Pop non-repeating word
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = secureShuffle(masterDeck);
     }
     room.currentCard = room.deckPool.pop();
 
-    const impostorIndex = crypto.randomInt(0, room.players.length);
-    const chosenImpostor = room.players[impostorIndex];
+    // 2. UNPREDICTABLE CRYPTOGRAPHIC RANDOM SELECTION
+    // All connected players are candidates
+    const activePlayers = room.players.filter(p => p.connected);
+    let candidatePool = [...activePlayers];
+
+    // Anti 3-in-a-row guard: if the same player was impostor in BOTH of the last 2 matches,
+    // temporarily exclude them so they can't be chosen 3 times consecutively.
+    if (room.impostorHistory && room.impostorHistory.length >= 2 && candidatePool.length > 1) {
+      const len = room.impostorHistory.length;
+      const last1 = room.impostorHistory[len - 1];
+      const last2 = room.impostorHistory[len - 2];
+      if (last1 === last2) {
+        candidatePool = candidatePool.filter(p => p.id !== last1);
+      }
+    }
+
+    // Pick completely at random from eligible candidates
+    const chosenIndex = crypto.randomInt(0, candidatePool.length);
+    const chosenImpostor = candidatePool[chosenIndex];
+
+    // Record in history
+    if (!room.impostorHistory) room.impostorHistory = [];
+    room.impostorHistory.push(chosenImpostor.id);
+    if (room.impostorHistory.length > 10) room.impostorHistory.shift();
 
     room.players.forEach(p => {
       p.role = (p.id === chosenImpostor.id) ? 'IMPOSTOR' : 'CITIZEN';
@@ -344,7 +368,6 @@ io.on('connection', (socket) => {
         } else {
           clearInterval(room.countdownTimer);
 
-          // 1. Tally votes received
           const counts = {};
           Object.values(room.votes).forEach(v => {
             counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
@@ -365,48 +388,41 @@ io.on('connection', (socket) => {
           }
 
           const impostor = room.players.find(p => p.role === 'IMPOSTOR');
-          
-          // Impostor is caught strictly if they hold the single highest vote count
           const impostorCaught = !isTie && (accusedId === impostor.id);
 
-          // Citizens who voted for the impostor
           const correctDetectives = room.players.filter(p => {
             const myVote = room.votes[p.id];
             return myVote && myVote.suspectId === impostor.id;
           });
 
           const playerPointsAwarded = {};
-          // Initialize all players to 0 points
           room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
 
           let winningPlayers = [];
 
           if (impostorCaught) {
-            // CASE 1: MAJORITY FINDS IMPOSTOR
-            // 1st prize (100) shared equally among all correct detectives. Impostor & wrong voters get 0.
+            // Majority identified impostor: 1st prize (100) split among correct voters
             winningPlayers = [...correctDetectives];
             const share = Math.round(100 / correctDetectives.length);
             correctDetectives.forEach(p => {
               playerPointsAwarded[p.id] = share;
             });
           } else {
-            // CASE 2 & 3: IMPOSTOR EVADED MAJORITY (Nobody found him OR only a minority found him)
-            // Impostor wins 1st prize (100 pts)
+            // Impostor evaded majority: Impostor gets 1st prize (100)
             winningPlayers = [impostor];
             playerPointsAwarded[impostor.id] = 100;
 
-            // If someone found the impostor, they share the 2nd prize (75 pts).
+            // If any detectives correctly caught him, they split 2nd prize (75)
             if (correctDetectives.length > 0) {
-              const secondPrizeShare = Math.round(75 / correctDetectives.length);
+              const secondShare = Math.round(75 / correctDetectives.length);
               correctDetectives.forEach(p => {
-                playerPointsAwarded[p.id] = secondPrizeShare;
+                playerPointsAwarded[p.id] = secondShare;
               });
               winningPlayers.push(...correctDetectives);
             }
-            // Wrong voters get 0
           }
 
-          // 2. Leaderboard Update
+          // Leaderboard update
           room.players.forEach(p => {
             const avIndex = p.avatar !== undefined ? p.avatar : 0;
             const stats = avatarLeaderboard[avIndex];
