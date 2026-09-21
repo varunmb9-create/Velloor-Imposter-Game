@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -52,10 +53,11 @@ function loadAllDecks() {
   ];
 }
 
-function shuffleArray(array) {
+// Cryptographically secure shuffle
+function secureShuffle(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = crypto.randomInt(0, i + 1);
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -67,7 +69,7 @@ function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 4; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(crypto.randomInt(0, chars.length));
   }
   return code;
 }
@@ -135,8 +137,7 @@ io.on('connection', (socket) => {
       roomId,
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
-      pastImpostors: [],
-      deckPool: shuffleArray(loadAllDecks()),
+      deckPool: secureShuffle(loadAllDecks()),
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -145,7 +146,8 @@ io.on('connection', (socket) => {
       clues: [],
       votes: {},
       gameOverData: null,
-      countdownTimer: null
+      countdownTimer: null,
+      openingTimer: null
     };
 
     socket.playerId = playerId;
@@ -190,41 +192,59 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('start_game', () => {
-    const room = rooms[socket.roomId];
-    if (!room || room.hostId !== socket.playerId) return;
-    if (room.players.length < 3) {
-      return socket.emit('error_message', 'At least 3 players required.');
-    }
-
+  function executeStartMatch(room) {
     if (!room.deckPool || room.deckPool.length === 0) {
-      room.deckPool = shuffleArray(loadAllDecks());
+      room.deckPool = secureShuffle(loadAllDecks());
     }
     room.currentCard = room.deckPool.pop();
 
-    let eligible = room.players.filter(p => !room.pastImpostors.includes(p.id));
-    if (eligible.length === 0) {
-      room.pastImpostors = [];
-      eligible = room.players;
-    }
-    const chosenImpostor = eligible[Math.floor(Math.random() * eligible.length)];
-    room.pastImpostors.push(chosenImpostor.id);
+    // 100% UNPREDICTABLE, CRYPTOGRAPHICALLY UNBIASED IMPOSTOR SELECTION
+    const impostorIndex = crypto.randomInt(0, room.players.length);
+    const chosenImpostor = room.players[impostorIndex];
 
     room.players.forEach(p => {
       p.role = (p.id === chosenImpostor.id) ? 'IMPOSTOR' : 'CITIZEN';
     });
 
-    room.state = 'CLUE_PHASE';
-    room.currentRound = 1;
-    room.totalRounds = 3;
-    room.turnIndex = 0;
-    room.clues = [];
-    room.votes = {};
-    room.gameOverData = null;
+    // START 3-SECOND LIGHTNING OPENING RITUAL
+    room.state = 'OPENING_RITUAL';
+    io.to(room.roomId).emit('trigger_opening_ritual');
 
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
+    if (room.openingTimer) clearTimeout(room.openingTimer);
+    room.openingTimer = setTimeout(() => {
+      room.state = 'CLUE_PHASE';
+      room.currentRound = 1;
+      room.totalRounds = 3;
+      room.turnIndex = 0;
+      room.clues = [];
+      room.votes = {};
+      room.gameOverData = null;
+
+      room.players.forEach(p => {
+        io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
+      });
+    }, 3000);
+  }
+
+  socket.on('start_game', () => {
+    const room = rooms[socket.roomId];
+    if (!room) return;
+    if (room.hostId !== socket.playerId) return;
+    if (room.players.length < 3) {
+      return socket.emit('error_message', 'At least 3 players required.');
+    }
+    executeStartMatch(room);
+  });
+
+  // ALLOW EVERY PLAYER TO START THE NEXT GAME
+  socket.on('play_again', () => {
+    const room = rooms[socket.roomId];
+    if (!room) return;
+    if (room.state !== 'GAME_OVER') return;
+    if (room.players.length < 3) {
+      return socket.emit('error_message', 'At least 3 players required.');
+    }
+    executeStartMatch(room);
   });
 
   socket.on('submit_clue', ({ text }) => {
@@ -332,7 +352,6 @@ io.on('connection', (socket) => {
           const remainingPlayers = [];
 
           if (impostorCaught) {
-            // Correct guessers are 1st tier (Winners)
             room.players.forEach(p => {
               const myVote = room.votes[p.id];
               if (myVote && myVote.suspectId === impostor.id) {
@@ -344,9 +363,7 @@ io.on('connection', (socket) => {
               }
             });
           } else {
-            // Impostor is 1st tier (Winner)
             winningPlayers.push(impostor);
-            // Citizens who identified impostor despite majority failing are 2nd tier
             room.players.forEach(p => {
               if (p.id !== impostor.id) {
                 const myVote = room.votes[p.id];
@@ -360,33 +377,25 @@ io.on('connection', (socket) => {
           }
 
           const playerPointsAwarded = {};
-
-          // 1st Place Tier (100 pts split equally)
           const winShare = winningPlayers.length > 0 ? Math.round(100 / winningPlayers.length) : 100;
           winningPlayers.forEach(p => playerPointsAwarded[p.id] = winShare);
 
-          // 2nd Place Tier (75 pts split equally)
           const runnerShare = runnerUpPlayers.length > 0 ? Math.round(75 / runnerUpPlayers.length) : 75;
           runnerUpPlayers.forEach(p => playerPointsAwarded[p.id] = runnerShare);
 
-          // 3rd through 8th Tiers: Group by votes received and split tied points equally
           const rankPointTiers = [50, 30, 20, 10, 5, 0];
-
-          // Sort remaining players by accusations received descending
           remainingPlayers.sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
 
           let tierIndex = 0;
           let i = 0;
           while (i < remainingPlayers.length) {
             const currentVotes = counts[remainingPlayers[i].id] || 0;
-            // Find all players tied with the same vote count
             const tiedGroup = [];
             while (i < remainingPlayers.length && (counts[remainingPlayers[i].id] || 0) === currentVotes) {
               tiedGroup.push(remainingPlayers[i]);
               i++;
             }
 
-            // Pool the points for each position this tied group spans
             let totalPointsToSplit = 0;
             for (let k = 0; k < tiedGroup.length; k++) {
               const currentTierPts = rankPointTiers[tierIndex + k] !== undefined ? rankPointTiers[tierIndex + k] : 0;
@@ -399,7 +408,6 @@ io.on('connection', (socket) => {
             tierIndex += tiedGroup.length;
           }
 
-          // Update Leaderboard Stats
           room.players.forEach(p => {
             const avIndex = p.avatar !== undefined ? p.avatar : 0;
             const stats = avatarLeaderboard[avIndex];
@@ -450,24 +458,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('play_again', () => {
-    const room = rooms[socket.roomId];
-    if (!room || room.hostId !== socket.playerId) return;
-
-    room.state = 'LOBBY';
-    room.currentCard = null;
-    room.currentRound = 1;
-    room.turnIndex = 0;
-    room.clues = [];
-    room.votes = {};
-    room.gameOverData = null;
-
-    room.players.forEach(p => {
-      p.role = null;
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
-  });
-
   socket.on('disconnect', () => {
     const room = rooms[socket.roomId];
     if (!room) return;
@@ -478,6 +468,7 @@ io.on('connection', (socket) => {
     const anyConnected = room.players.some(x => x.connected);
     if (!anyConnected) {
       if (room.countdownTimer) clearInterval(room.countdownTimer);
+      if (room.openingTimer) clearTimeout(room.openingTimer);
       delete rooms[socket.roomId];
     } else {
       if (room.hostId === socket.playerId) {
