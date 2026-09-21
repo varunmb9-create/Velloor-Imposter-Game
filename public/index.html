@@ -195,8 +195,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: border-color 0.25s ease;
-      will-change: transform;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      overflow: visible;
     }
     .avatar-card img {
       width: 52px;
@@ -204,78 +204,99 @@
       border-radius: 8px;
       object-fit: cover;
       pointer-events: none;
+      display: block;
+      transition: transform 0.15s ease;
     }
     .avatar-card.selected {
       border-color: #ffd700;
       box-shadow: 0 0 14px rgba(255, 215, 0, 0.65);
-      transform: scale(1.05);
+    }
+    .avatar-card.selected img {
+      transform: scale(1.06);
     }
 
-    /* 8 UNIQUE TAP KINETIC ANIMATIONS */
-    @keyframes anim-avatar-0 {
-      0% { transform: scale(1); }
-      30% { transform: scale(0.92) translateY(-4px); }
-      60% { transform: scale(1.1) translateY(2px); }
-      100% { transform: scale(1.05); }
-    }
-    .tap-anim-0 { animation: anim-avatar-0 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+    /* --------------------------------------------------------
+       8 HIGH-VISIBILITY DIVERSE KINETIC ANIMATIONS FOR AVATARS
+       -------------------------------------------------------- */
 
-    @keyframes anim-avatar-1 {
-      0% { transform: scale(1); }
-      25% { transform: rotate(-8deg) scale(0.95); }
-      60% { transform: rotate(6deg) scale(1.08); }
-      100% { transform: rotate(0deg) scale(1.05); }
+    /* Avatar 1: Powerful Double Nod / War Bow */
+    @keyframes move-avatar-0 {
+      0% { transform: translateY(0); }
+      30% { transform: translateY(-12px); }
+      60% { transform: translateY(4px); }
+      80% { transform: translateY(-4px); }
+      100% { transform: translateY(0); }
     }
-    .tap-anim-1 { animation: anim-avatar-1 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+    .avatar-img-anim-0 { animation: move-avatar-0 0.45s ease-out !important; }
 
-    @keyframes anim-avatar-2 {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.15); filter: brightness(1.25); }
-      70% { transform: scale(0.97); }
-      100% { transform: scale(1.05); }
+    /* Avatar 2: Sharp Side-to-Side Head Tilt / Dodge */
+    @keyframes move-avatar-1 {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(-18deg) scale(1.1); }
+      50% { transform: rotate(18deg) scale(1.1); }
+      75% { transform: rotate(-8deg); }
+      100% { transform: rotate(0deg); }
     }
-    .tap-anim-2 { animation: anim-avatar-2 0.32s ease-out; }
+    .avatar-img-anim-1 { animation: move-avatar-1 0.45s ease-in-out !important; }
 
-    @keyframes anim-avatar-3 {
-      0% { transform: scale(1); }
-      30% { transform: rotate(10deg) scale(1.12); }
-      60% { transform: rotate(-4deg) scale(1.02); }
-      100% { transform: rotate(0deg) scale(1.05); }
+    /* Avatar 3: High Elastic Bounce / Jump */
+    @keyframes move-avatar-2 {
+      0% { transform: scale(1, 1); }
+      25% { transform: scale(1.2, 0.8) translateY(6px); }
+      50% { transform: scale(0.85, 1.25) translateY(-14px); }
+      75% { transform: scale(1.05, 0.95) translateY(0); }
+      100% { transform: scale(1, 1); }
     }
-    .tap-anim-3 { animation: anim-avatar-3 0.36s ease-out; }
+    .avatar-img-anim-2 { animation: move-avatar-2 0.45s cubic-bezier(0.28, 0.84, 0.42, 1) !important; }
 
-    @keyframes anim-avatar-4 {
-      0% { transform: scale(1); }
-      35% { transform: translateY(-7px) scale(1.08); }
-      65% { transform: translateY(2px) scale(0.98); }
-      100% { transform: translateY(0) scale(1.05); }
+    /* Avatar 4: Fast Full 360 Spin */
+    @keyframes move-avatar-3 {
+      0% { transform: rotate(0deg) scale(1); }
+      50% { transform: rotate(180deg) scale(1.2); }
+      100% { transform: rotate(360deg) scale(1); }
     }
-    .tap-anim-4 { animation: anim-avatar-4 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .avatar-img-anim-3 { animation: move-avatar-3 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
 
-    @keyframes anim-avatar-5 {
-      0% { transform: scale(1); }
-      20% { transform: translateX(-4px); }
-      40% { transform: translateX(4px); }
-      60% { transform: translateX(-2px); }
-      80% { transform: translateX(2px); }
-      100% { transform: translateX(0) scale(1.05); }
+    /* Avatar 5: Quick Earthquake Shiver / Tremor */
+    @keyframes move-avatar-4 {
+      0% { transform: translateX(0); }
+      15% { transform: translateX(-8px) rotate(-4deg); }
+      30% { transform: translateX(8px) rotate(4deg); }
+      45% { transform: translateX(-6px) rotate(-2deg); }
+      60% { transform: translateX(6px) rotate(2deg); }
+      75% { transform: translateX(-3px); }
+      100% { transform: translateX(0); }
     }
-    .tap-anim-5 { animation: anim-avatar-5 0.32s ease-in-out; }
+    .avatar-img-anim-4 { animation: move-avatar-4 0.42s ease-in-out !important; }
 
-    @keyframes anim-avatar-6 {
-      0% { transform: scale(1) rotate(0deg); }
-      50% { transform: scale(1.12) rotate(180deg); }
-      100% { transform: scale(1.05) rotate(360deg); }
+    /* Avatar 6: Horizontal Combat Slide */
+    @keyframes move-avatar-5 {
+      0% { transform: translateX(0) scale(1); }
+      30% { transform: translateX(-12px) skewX(-10deg); }
+      65% { transform: translateX(10px) skewX(8deg); }
+      85% { transform: translateX(-3px); }
+      100% { transform: translateX(0) scale(1); }
     }
-    .tap-anim-6 { animation: anim-avatar-6 0.38s cubic-bezier(0.2, 0.8, 0.4, 1.2); }
+    .avatar-img-anim-5 { animation: move-avatar-5 0.44s ease-out !important; }
 
-    @keyframes anim-avatar-7 {
-      0% { transform: scale(1); }
-      30% { transform: scale(0.88); filter: brightness(1.3); }
-      70% { transform: scale(1.14); }
-      100% { transform: scale(1.05); }
+    /* Avatar 7: Pulse Flare / Shockwave */
+    @keyframes move-avatar-6 {
+      0% { transform: scale(1); filter: brightness(1); }
+      40% { transform: scale(1.3); filter: brightness(1.6) drop-shadow(0 0 10px #ffd700); }
+      80% { transform: scale(0.95); filter: brightness(1.1); }
+      100% { transform: scale(1); filter: brightness(1); }
     }
-    .tap-anim-7 { animation: anim-avatar-7 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .avatar-img-anim-6 { animation: move-avatar-6 0.42s ease-out !important; }
+
+    /* Avatar 8: Diagonal Lunging Strike */
+    @keyframes move-avatar-7 {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      30% { transform: translate(-8px, 8px) rotate(-10deg) scale(0.9); }
+      60% { transform: translate(10px, -10px) rotate(10deg) scale(1.2); }
+      85% { transform: translate(-2px, 2px); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+    .avatar-img-anim-7 { animation: move-avatar-7 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important; }
 
     .badge-bar {
       display: flex;
@@ -412,6 +433,8 @@
       width: 68px;
       height: 68px;
       margin-top: 16px;
+      background: #000;
+      border-radius: 50%;
     }
     .crown-wrapper img.winner-avatar {
       width: 100%;
@@ -420,6 +443,7 @@
       object-fit: cover;
       border: 3px solid #ffd700;
       box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
+      background: #000;
     }
     .golden-crown-icon {
       position: absolute;
@@ -447,7 +471,6 @@
       font-weight: bold;
     }
 
-    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -516,7 +539,6 @@
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- LEADERBOARD MODAL -->
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -681,31 +703,43 @@
 
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
-      const div = document.createElement('div');
-      div.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
-      div.innerHTML = `<img src="${url}" />`;
-      div.onclick = () => {
+      const card = document.createElement('div');
+      card.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
+      card.dataset.index = idx;
+
+      const img = document.createElement('img');
+      img.src = url;
+      card.appendChild(img);
+
+      card.onclick = () => {
         playTouchSFX();
 
-        // Trigger unique kinetic animation for this specific avatar
-        document.querySelectorAll('.avatar-card').forEach((c, i) => {
-          c.classList.remove('selected', `tap-anim-${i}`);
-        });
-        div.classList.add('selected', `tap-anim-${idx}`);
-
-        // Clear animation class after execution to re-trigger on subsequent taps
-        setTimeout(() => {
-          div.classList.remove(`tap-anim-${idx}`);
-        }, 400);
-
+        // Update selected state border
+        document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
         selectedAvatarIndex = idx;
+
+        // Reset previous image animations
+        document.querySelectorAll('.avatar-card img').forEach((image, i) => {
+          image.classList.remove(`avatar-img-anim-${i}`);
+        });
+
+        // Trigger dynamic animation directly on image
+        void img.offsetWidth; // Force CSS reflow
+        img.classList.add(`avatar-img-anim-${idx}`);
+
+        setTimeout(() => {
+          img.classList.remove(`avatar-img-anim-${idx}`);
+        }, 500);
+
         tryPlayBGMOnFirstTouch();
       };
-      avatarGridEl.appendChild(div);
+
+      avatarGridEl.appendChild(card);
     });
 
     // -------------------------------------------------------------------
-    // AUDIO STATE GUARDS (PREVENTS ACCIDENTAL UNMUTE)
+    // AUDIO STATE GUARDS
     // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
