@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTOR IN VELLOOR</title>
 
-  <!-- THEMATIC IN-GAME CALLIGRAPHY FONT (CINZEL DECORATIVE) -->
+  <!-- IN-GAME CALLIGRAPHIC FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
 
-  <!-- PWA & DEVICE ICONS -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
   <link rel="apple-touch-icon" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
@@ -93,7 +92,6 @@
       transition: opacity 0.25s ease-out;
     }
 
-    /* THEMATIC 3-SECOND "LET'S GO" THUNDER RITUAL MODAL */
     #openingRitualModal {
       position: fixed;
       top: 0;
@@ -307,24 +305,6 @@
     }
     .avatar-card.selected img { transform: scale(1.06); }
 
-    /* 8 AVATAR TAP KINETIC MOTIONS */
-    @keyframes move-avatar-0 { 0% { transform: translateY(0); } 30% { transform: translateY(-12px); } 60% { transform: translateY(4px); } 80% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
-    .avatar-img-anim-0 { animation: move-avatar-0 0.45s ease-out !important; }
-    @keyframes move-avatar-1 { 0% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.1); } 50% { transform: rotate(18deg) scale(1.1); } 75% { transform: rotate(-8deg); } 100% { transform: rotate(0deg); } }
-    .avatar-img-anim-1 { animation: move-avatar-1 0.45s ease-in-out !important; }
-    @keyframes move-avatar-2 { 0% { transform: scale(1, 1); } 25% { transform: scale(1.2, 0.8) translateY(6px); } 50% { transform: scale(0.85, 1.25) translateY(-14px); } 75% { transform: scale(1.05, 0.95) translateY(0); } 100% { transform: scale(1, 1); } }
-    .avatar-img-anim-2 { animation: move-avatar-2 0.45s cubic-bezier(0.28, 0.84, 0.42, 1) !important; }
-    @keyframes move-avatar-3 { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
-    .avatar-img-anim-3 { animation: move-avatar-3 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-    @keyframes move-avatar-4 { 0% { transform: translateX(0); } 15% { transform: translateX(-8px) rotate(-4deg); } 30% { transform: translateX(8px) rotate(4deg); } 45% { transform: translateX(-6px) rotate(-2deg); } 60% { transform: translateX(6px) rotate(2deg); } 75% { transform: translateX(-3px); } 100% { transform: translateX(0); } }
-    .avatar-img-anim-4 { animation: move-avatar-4 0.42s ease-in-out !important; }
-    @keyframes move-avatar-5 { 0% { transform: translateX(0) scale(1); } 30% { transform: translateX(-12px) skewX(-10deg); } 65% { transform: translateX(10px) skewX(8deg); } 85% { transform: translateX(-3px); } 100% { transform: translateX(0) scale(1); } }
-    .avatar-img-anim-5 { animation: move-avatar-5 0.44s ease-out !important; }
-    @keyframes move-avatar-6 { 0% { transform: scale(1); filter: brightness(1); } 40% { transform: scale(1.3); filter: brightness(1.6) drop-shadow(0 0 10px #ffd700); } 80% { transform: scale(0.95); filter: brightness(1.1); } 100% { transform: scale(1); filter: brightness(1); } }
-    .avatar-img-anim-6 { animation: move-avatar-6 0.42s ease-out !important; }
-    @keyframes move-avatar-7 { 0% { transform: translate(0, 0) rotate(0deg); } 30% { transform: translate(-8px, 8px) rotate(-10deg) scale(0.9); } 60% { transform: translate(10px, -10px) rotate(10deg) scale(1.2); } 85% { transform: translate(-2px, 2px); } 100% { transform: translate(0, 0) rotate(0deg); } }
-    .avatar-img-anim-7 { animation: move-avatar-7 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important; }
-
     .badge-bar {
       display: flex;
       justify-content: space-between;
@@ -338,7 +318,6 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
-    /* FROZEN SECRET TOPIC CARD REVEAL */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -373,11 +352,7 @@
       transform: scale(1.15) !important;
       pointer-events: none !important;
     }
-    .ice-icon { font-size: 2.8rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px #00e5ff); animation: iceGlowPulse 1.8s infinite alternate; }
-    @keyframes iceGlowPulse {
-      0% { transform: scale(1); filter: drop-shadow(0 0 6px #00e5ff); }
-      100% { transform: scale(1.1); filter: drop-shadow(0 0 16px #ffffff); }
-    }
+    .ice-icon { font-size: 2.8rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px #00e5ff); }
     .ice-title { font-weight: 900; color: #002b4d; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
     .ice-sub { font-weight: 700; color: #023859; font-size: 0.78rem; margin-top: 4px; }
 
@@ -396,7 +371,6 @@
       border: 1px solid rgba(255, 215, 0, 0.3);
       margin-top: 10px;
     }
-
     .impostor-box {
       border-color: #ff3333;
       background: rgba(50, 10, 10, 0.5);
@@ -457,11 +431,11 @@
       padding: 24px 0;
     }
     .countdown-number {
-      font-size: 4.5rem;
+      font-size: 4.8rem;
       font-weight: 900;
-      color: #ff4444;
-      text-shadow: 0 0 25px rgba(255, 68, 68, 0.8);
-      animation: pulse 1s infinite;
+      color: #ff3333;
+      text-shadow: 0 0 35px rgba(255, 50, 50, 0.9);
+      transition: transform 0.15s ease-out;
     }
 
     #partyModal {
@@ -525,12 +499,10 @@
     .crowned-avatar-card { display: flex; flex-direction: column; align-items: center; position: relative; }
     .crown-wrapper { position: relative; width: 68px; height: 68px; margin-top: 16px; background: #000; border-radius: 50%; }
     .crown-wrapper img.winner-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #ffd700; box-shadow: 0 0 16px rgba(255, 215, 0, 0.8); background: #000; }
-    .golden-crown-icon { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; filter: drop-shadow(0 0 8px #ffd700); animation: crownBounce 2s infinite ease-in-out; }
-    @keyframes crownBounce { 0% { transform: translateX(-50%) translateY(0) rotate(0deg); } 50% { transform: translateX(-50%) translateY(-5px) rotate(4deg); } 100% { transform: translateX(-50%) translateY(0) rotate(0deg); } }
+    .golden-crown-icon { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; filter: drop-shadow(0 0 8px #ffd700); }
     .winner-name-tag { margin-top: 4px; font-weight: 800; color: #ffd700; font-size: 0.88rem; }
     .winner-pts-tag { font-size: 0.76rem; color: #76ff03; font-weight: bold; }
 
-    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -575,7 +547,6 @@
     <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
   </div>
 
-  <!-- THEMATIC IN-GAME "LET'S GO" THUNDER RITUAL MODAL -->
   <div id="openingRitualModal" class="hidden">
     <canvas id="lightningCanvas"></canvas>
     <div class="opening-calligraphy-wrapper">
@@ -588,7 +559,6 @@
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- CLEAN LEADERBOARD MODAL (AVATAR, MATCHES, LAST MATCH PTS, GRAND TOTAL) -->
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -658,7 +628,7 @@
       <button class="danger-btn" onclick="exitGameDirectly()">🚪 Exit Chamber</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN (WITH ICE CRUST REVEAL CARD) -->
+    <!-- 3. GAMEPLAY SCREEN -->
     <div id="screen-game" class="hidden">
       <div class="badge-bar">
         <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
@@ -700,7 +670,7 @@
       <button id="endCluesEarlyBtn" class="danger-btn hidden" onclick="endCluesEarly()">End Clues & Vote Now (Host)</button>
     </div>
 
-    <!-- 4. VOTING SCREEN WITH CLUES TABLE RECAP -->
+    <!-- 4. VOTING SCREEN -->
     <div id="screen-vote" class="hidden">
       <h3 class="gold-text" style="text-align: center; margin-bottom: 4px;">VOTING TRIBUNAL</h3>
       <p class="silver-text" style="text-align: center; font-size: 0.8rem; margin-bottom: 8px;">
@@ -767,7 +737,6 @@
       });
     }
 
-    // CONTINUOUS BACKGROUND EMBER PARTICLES
     const emberCanvas = document.getElementById('emberCanvas');
     const ectx = emberCanvas.getContext('2d');
     let embers = [];
@@ -821,7 +790,6 @@
     }
     animateEmbers();
 
-    // IN-GAME THEMATIC "LET'S GO" 8-WAY THUNDER ANIMATION
     const lCanvas = document.getElementById('lightningCanvas');
     const lctx = lCanvas.getContext('2d');
     let lightningRunning = false;
@@ -935,18 +903,6 @@
         document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedAvatarIndex = idx;
-
-        document.querySelectorAll('.avatar-card img').forEach((image, i) => {
-          image.classList.remove(`avatar-img-anim-${i}`);
-        });
-
-        void img.offsetWidth;
-        img.classList.add(`avatar-img-anim-${idx}`);
-
-        setTimeout(() => {
-          img.classList.remove(`avatar-img-anim-${idx}`);
-        }, 500);
-
         tryPlayBGMOnFirstTouch();
       };
 
@@ -1022,7 +978,6 @@
       try {
         const ctx = getSFXContext();
         const now = ctx.currentTime;
-
         const bufferSize = ctx.sampleRate * 0.45;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -1071,7 +1026,6 @@
       try {
         const ctx = getSFXContext();
         const now = ctx.currentTime;
-
         const bufferSize = ctx.sampleRate * 2.8;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -1118,82 +1072,6 @@
       }
     });
 
-    function playWingFlapSFX() {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getSFXContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(90, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
-      } catch (e) {}
-    }
-
-    function playFlameSFX() {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getSFXContext();
-        const bufferSize = ctx.sampleRate * 1.5;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(850, ctx.currentTime);
-        filter.frequency.linearRampToValueAtTime(200, ctx.currentTime + 1.5);
-
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 1.5);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        noise.start();
-        noise.stop(ctx.currentTime + 1.5);
-      } catch (e) {}
-    }
-
-    function playFireworkBoomSFX() {
-      if (!sfxEnabled) return;
-      try {
-        const ctx = getSFXContext();
-        const bufferSize = ctx.sampleRate * 0.9;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(400, ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.9);
-
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.35, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.9);
-
-        noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        noise.start();
-        noise.stop(ctx.currentTime + 0.9);
-      } catch (e) {}
-    }
-
     const canvas = document.getElementById('dragonCanvas');
     const dctx = canvas.getContext('2d');
     function resizeCanvas() {
@@ -1204,7 +1082,6 @@
     resizeCanvas();
 
     let dragon = null;
-
     function spawnDragon() {
       const fromLeft = Math.random() > 0.5;
       const banner = document.getElementById('mainBannerHeading').getBoundingClientRect();
@@ -1220,33 +1097,15 @@
         facingLeft: !fromLeft,
         flameDone: false
       };
-      playWingFlapSFX();
     }
 
     function drawDragon(d) {
       dctx.save();
       dctx.translate(d.x, d.y);
       if (d.facingLeft) dctx.scale(-1, 1);
-
       if (dragonImage.complete && dragonImage.naturalWidth > 0) {
         dctx.drawImage(dragonImage, -d.width / 2, -d.height / 2, d.width, d.height);
       }
-
-      if (!d.flameDone && d.x > canvas.width * 0.25 && d.x < canvas.width * 0.75) {
-        d.flameDone = true;
-        playFlameSFX();
-        const glow = document.getElementById('flameGlow');
-        glow.style.opacity = '1';
-        setTimeout(() => glow.style.opacity = '0', 650);
-
-        for (let i = 0; i < 30; i++) {
-          dctx.fillStyle = i % 2 === 0 ? '#ff3b00' : '#ffd700';
-          dctx.beginPath();
-          dctx.arc(60 + Math.random() * 80, -10 + (Math.random() - 0.5) * 35, 5 + Math.random() * 10, 0, Math.PI * 2);
-          dctx.fill();
-        }
-      }
-
       dctx.restore();
     }
 
@@ -1256,14 +1115,12 @@
         dragon.x += dragon.vx;
         dragon.y += dragon.vy;
         drawDragon(dragon);
-
         if (dragon.vx > 0 && dragon.x > canvas.width + 300) dragon = null;
         if (dragon.vx < 0 && dragon.x < -300) dragon = null;
       }
       requestAnimationFrame(animateDragon);
     }
     animateDragon();
-
     setInterval(spawnDragon, 5000);
 
     const fwCanvas = document.getElementById('fireworksCanvas');
@@ -1283,14 +1140,11 @@
       const colors = ['#ffd700', '#ff3b00', '#00e5ff', '#ff007f', '#ffffff'];
       const color = colors[Math.floor(Math.random() * colors.length)];
 
-      playFireworkBoomSFX();
-
       for (let i = 0; i < 45; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 2 + Math.random() * 6;
         fireworks.push({
-          x,
-          y,
+          x, y,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           alpha: 1,
@@ -1347,7 +1201,7 @@
     }
 
     function requestResetLeaderboard() {
-      if (confirm('Are you sure you want to reset the Leaderboard to 0 for all players in this game?')) {
+      if (confirm('Reset Leaderboard to 0 for all players?')) {
         socket.emit('reset_leaderboard_global');
       }
     }
@@ -1391,7 +1245,7 @@
     }
 
     function exitGameDirectly() {
-      if (confirm('Leave this chamber and return to the main entry screen?')) {
+      if (confirm('Leave this chamber and return to main screen?')) {
         localStorage.removeItem('velloor_room_id');
         currentRoomId = null;
         document.body.classList.remove('impostor-win-atmosphere');
@@ -1433,7 +1287,6 @@
 
       localStorage.removeItem('velloor_room_id');
       localStorage.setItem('velloor_player_name', name);
-      
       socket.emit('create_room', { playerName: name, avatar: selectedAvatarIndex, playerId });
     }
 
@@ -1456,10 +1309,7 @@
 
     socket.on('room_created', (data) => {
       const btn = document.getElementById('createRoomBtn');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Create New Game';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Create New Game'; }
       currentRoomId = data.roomId;
       localStorage.setItem('velloor_room_id', currentRoomId);
       document.getElementById('lobbyRoomCode').textContent = data.roomId;
@@ -1483,6 +1333,36 @@
       if (ice) ice.classList.remove('shattered');
 
       runLightningStrikes();
+    });
+
+    // SMOOTH CLIENT-ASSISTED COUNTDOWN
+    let clientTimer = null;
+    socket.on('start_reveal_countdown', (data) => {
+      showScreen('screen-countdown');
+      let currentVal = data.count || 10;
+      const clock = document.getElementById('countdownClock');
+      clock.textContent = currentVal;
+
+      if (clientTimer) clearInterval(clientTimer);
+      clientTimer = setInterval(() => {
+        currentVal--;
+        if (currentVal >= 0) {
+          clock.textContent = currentVal;
+          clock.style.transform = 'scale(1.15)';
+          setTimeout(() => clock.style.transform = 'scale(1)', 150);
+        }
+        if (currentVal <= 0) {
+          clearInterval(clientTimer);
+          clientTimer = null;
+        }
+      }, 1000);
+    });
+
+    socket.on('countdown_tick', (data) => {
+      const clock = document.getElementById('countdownClock');
+      if (clock && data.count !== undefined) {
+        clock.textContent = data.count;
+      }
     });
 
     socket.on('full_state_update', (room) => {
@@ -1572,13 +1452,18 @@
         }
 
         const select = document.getElementById('suspectSelect');
-        select.innerHTML = room.players.filter(p => p.id !== playerId).map(p => 
+        select.innerHTML = room.players.filter(p => p.id !== playerId && p.connected).map(p => 
           `<option value="${p.id}">${p.name}</option>`
         ).join('');
         document.getElementById('voteStatus').textContent = `Votes recorded: ${room.votesCount || 0} / ${room.totalVoters}`;
       }
 
       if (room.state === 'GAME_OVER' && room.gameOverData) {
+        if (clientTimer) {
+          clearInterval(clientTimer);
+          clientTimer = null;
+        }
+
         showScreen('screen-results');
         const god = room.gameOverData;
 
@@ -1613,10 +1498,10 @@
 
         if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to the detectives below:`;
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to detectives below:`;
         } else {
-          document.getElementById('partyHeader').textContent = 'IMPOSTOR & DETECTIVES WIN!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived! Ranked points awarded below:`;
+          document.getElementById('partyHeader').textContent = 'IMPOSTOR EVADED MAJORITY!';
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived! Points awarded below:`;
         }
 
         const verdictEl = document.getElementById('finalVerdict');
@@ -1647,7 +1532,7 @@
     }
 
     function endCluesEarly() {
-      if (confirm('Are you sure you want to conclude clues and begin voting immediately?')) {
+      if (confirm('Conclude clues and vote immediately?')) {
         socket.emit('end_clues_early');
       }
     }
@@ -1665,15 +1550,6 @@
       document.getElementById('voteStatus').textContent = `Votes recorded: ${data.votesCount} / ${data.totalVoters}`;
     });
 
-    socket.on('start_reveal_countdown', (data) => {
-      showScreen('screen-countdown');
-      document.getElementById('countdownClock').textContent = data.count;
-    });
-
-    socket.on('countdown_tick', (data) => {
-      document.getElementById('countdownClock').textContent = data.count;
-    });
-
     function playAgain() {
       closePartyModal();
       socket.emit('play_again');
@@ -1681,10 +1557,7 @@
 
     socket.on('error_message', (msg) => {
       const btn = document.getElementById('createRoomBtn');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Create New Game';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Create New Game'; }
       alert(msg);
     });
   </script>
