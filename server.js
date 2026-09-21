@@ -23,7 +23,7 @@ function createFreshLeaderboard() {
       avatarIndex: i,
       matches: 0,
       lastPoints: 0,
-      points: 0 // Grand Total sum
+      points: 0
     });
   }
   return board;
@@ -58,9 +58,6 @@ function saveLeaderboard(board) {
 
 let avatarLeaderboard = initLeaderboard();
 
-// -------------------------------------------------------------
-// ZERO-REPETITION 200+ WORDS SYSTEM
-// -------------------------------------------------------------
 function loadAllDecks() {
   try {
     const raw = fs.readFileSync(path.join(__dirname, 'words.json'), 'utf8');
@@ -134,7 +131,6 @@ io.on('connection', (socket) => {
     socket.emit('leaderboard_update', avatarLeaderboard);
   });
 
-  // REAL-TIME GLOBAL LEADERBOARD RESET ACROSS ALL PLAYERS
   socket.on('reset_leaderboard_global', () => {
     avatarLeaderboard = createFreshLeaderboard();
     saveLeaderboard(avatarLeaderboard);
@@ -163,7 +159,7 @@ io.on('connection', (socket) => {
       roomId,
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
-      deckPool: secureShuffle(masterDeck), // 200 non-repeating words stack
+      deckPool: secureShuffle(masterDeck),
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -219,13 +215,12 @@ io.on('connection', (socket) => {
   });
 
   function executeStartMatch(room) {
-    // STRICT ZERO-REPETITION: Pop one item off the deck; only reshuffle once all 200 are exhausted
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = secureShuffle(masterDeck);
     }
     room.currentCard = room.deckPool.pop();
 
-    // 100% CRYPTOGRAPHICALLY UNBIASED IMPOSTOR SELECTION
+    // 100% UNBIASED, TRUE CRYPTOGRAPHIC RANDOMNESS (Zero memory bias)
     const impostorIndex = crypto.randomInt(0, room.players.length);
     const chosenImpostor = room.players[impostorIndex];
 
@@ -433,7 +428,6 @@ io.on('connection', (socket) => {
             tierIndex += tiedGroup.length;
           }
 
-          // 100% ACCURATE MATH: Accumulate matches, record lastPoints, increment Grand Total sum
           room.players.forEach(p => {
             const avIndex = p.avatar !== undefined ? p.avatar : 0;
             const stats = avatarLeaderboard[avIndex];
@@ -441,7 +435,7 @@ io.on('connection', (socket) => {
               const ptsThisMatch = playerPointsAwarded[p.id] || 0;
               stats.matches += 1;
               stats.lastPoints = ptsThisMatch;
-              stats.points += ptsThisMatch; // Sum of all points
+              stats.points += ptsThisMatch;
             }
           });
           saveLeaderboard(avatarLeaderboard);
@@ -509,4 +503,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Server online on ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Server online on ${PORT}`));
