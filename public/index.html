@@ -190,32 +190,92 @@
       border-radius: 10px;
       border: 2px solid transparent;
       padding: 4px;
-      background: #000000;
+      background: rgba(255, 255, 255, 0.05);
       cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: border-color 0.2s, transform 0.1s;
+      transition: border-color 0.25s ease;
+      will-change: transform;
     }
     .avatar-card img {
       width: 52px;
       height: 52px;
       border-radius: 8px;
       object-fit: cover;
-      background: #000000;
+      pointer-events: none;
     }
     .avatar-card.selected {
       border-color: #ffd700;
-      box-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+      box-shadow: 0 0 14px rgba(255, 215, 0, 0.65);
       transform: scale(1.05);
     }
 
-    /* REMOVE WHITE BACKGROUND FOR AVATAR 4 & 7 */
-    .avatar-darken-bg {
-      background-color: #000000 !important;
-      mix-blend-mode: screen !important;
-      filter: contrast(1.15) brightness(0.95);
+    /* 8 UNIQUE TAP KINETIC ANIMATIONS */
+    @keyframes anim-avatar-0 {
+      0% { transform: scale(1); }
+      30% { transform: scale(0.92) translateY(-4px); }
+      60% { transform: scale(1.1) translateY(2px); }
+      100% { transform: scale(1.05); }
     }
+    .tap-anim-0 { animation: anim-avatar-0 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+
+    @keyframes anim-avatar-1 {
+      0% { transform: scale(1); }
+      25% { transform: rotate(-8deg) scale(0.95); }
+      60% { transform: rotate(6deg) scale(1.08); }
+      100% { transform: rotate(0deg) scale(1.05); }
+    }
+    .tap-anim-1 { animation: anim-avatar-1 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+
+    @keyframes anim-avatar-2 {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.15); filter: brightness(1.25); }
+      70% { transform: scale(0.97); }
+      100% { transform: scale(1.05); }
+    }
+    .tap-anim-2 { animation: anim-avatar-2 0.32s ease-out; }
+
+    @keyframes anim-avatar-3 {
+      0% { transform: scale(1); }
+      30% { transform: rotate(10deg) scale(1.12); }
+      60% { transform: rotate(-4deg) scale(1.02); }
+      100% { transform: rotate(0deg) scale(1.05); }
+    }
+    .tap-anim-3 { animation: anim-avatar-3 0.36s ease-out; }
+
+    @keyframes anim-avatar-4 {
+      0% { transform: scale(1); }
+      35% { transform: translateY(-7px) scale(1.08); }
+      65% { transform: translateY(2px) scale(0.98); }
+      100% { transform: translateY(0) scale(1.05); }
+    }
+    .tap-anim-4 { animation: anim-avatar-4 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+    @keyframes anim-avatar-5 {
+      0% { transform: scale(1); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+      100% { transform: translateX(0) scale(1.05); }
+    }
+    .tap-anim-5 { animation: anim-avatar-5 0.32s ease-in-out; }
+
+    @keyframes anim-avatar-6 {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.12) rotate(180deg); }
+      100% { transform: scale(1.05) rotate(360deg); }
+    }
+    .tap-anim-6 { animation: anim-avatar-6 0.38s cubic-bezier(0.2, 0.8, 0.4, 1.2); }
+
+    @keyframes anim-avatar-7 {
+      0% { transform: scale(1); }
+      30% { transform: scale(0.88); filter: brightness(1.3); }
+      70% { transform: scale(1.14); }
+      100% { transform: scale(1.05); }
+    }
+    .tap-anim-7 { animation: anim-avatar-7 0.32s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
     .badge-bar {
       display: flex;
@@ -285,7 +345,6 @@
       animation: pulse 1s infinite;
     }
 
-    /* FULLSCREEN PARTY MODAL */
     #partyModal {
       position: fixed;
       top: 0;
@@ -353,8 +412,6 @@
       width: 68px;
       height: 68px;
       margin-top: 16px;
-      background: #000;
-      border-radius: 50%;
     }
     .crown-wrapper img.winner-avatar {
       width: 100%;
@@ -363,7 +420,6 @@
       object-fit: cover;
       border: 3px solid #ffd700;
       box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
-      background: #000;
     }
     .golden-crown-icon {
       position: absolute;
@@ -613,36 +669,44 @@
       'https://i.postimg.cc/9R4txjzB/1789934119807.png',
       'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
       'https://i.postimg.cc/jW2z5rH3/1789934440272.png',
-      'https://i.postimg.cc/d7381K2X/1789934868069.png',
+      'https://i.postimg.cc/8cF357br/1789949385902.png',
       'https://i.postimg.cc/hJv9jqLC/1789934938220.png',
       'https://i.postimg.cc/xk8KCSv6/1789935235791.png',
-      'https://i.postimg.cc/yJxFdzmM/1789935456971.png',
+      'https://i.postimg.cc/bw05sc1B/1789949439051.png',
       'https://i.postimg.cc/Y4019wNc/1789935612680.png'
     ];
 
     let selectedAvatarIndex = 0;
     let latestMatchPoints = {};
 
-    function isDarkenAvatar(idx) {
-      return idx === 3 || idx === 6; // 4th and 7th avatars (zero-indexed)
-    }
-
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
       const div = document.createElement('div');
       div.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
-      const extraClass = isDarkenAvatar(idx) ? 'avatar-darken-bg' : '';
-      div.innerHTML = `<img class="${extraClass}" src="${url}" />`;
+      div.innerHTML = `<img src="${url}" />`;
       div.onclick = () => {
         playTouchSFX();
-        document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
-        div.classList.add('selected');
+
+        // Trigger unique kinetic animation for this specific avatar
+        document.querySelectorAll('.avatar-card').forEach((c, i) => {
+          c.classList.remove('selected', `tap-anim-${i}`);
+        });
+        div.classList.add('selected', `tap-anim-${idx}`);
+
+        // Clear animation class after execution to re-trigger on subsequent taps
+        setTimeout(() => {
+          div.classList.remove(`tap-anim-${idx}`);
+        }, 400);
+
         selectedAvatarIndex = idx;
         tryPlayBGMOnFirstTouch();
       };
       avatarGridEl.appendChild(div);
     });
 
+    // -------------------------------------------------------------------
+    // AUDIO STATE GUARDS (PREVENTS ACCIDENTAL UNMUTE)
+    // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -948,19 +1012,17 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
-    // LEADERBOARD RENDER: Player, Win, Loss, Points, Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
       tbody.innerHTML = sorted.map((row, idx) => {
         const matchPts = latestMatchPoints[row.avatarIndex] !== undefined ? latestMatchPoints[row.avatarIndex] : 0;
-        const extraClass = isDarkenAvatar(row.avatarIndex) ? 'avatar-darken-bg' : '';
         return `
           <tr>
             <td>
               <div class="lb-player-cell">
                 <span class="gold-text" style="font-size:0.78rem;">#${idx + 1}</span>
-                <img class="${extraClass}" src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700; background:#000;" />
+                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
                 <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
               </div>
             </td>
@@ -1064,15 +1126,12 @@
         showScreen('screen-lobby');
         document.getElementById('lobbyRoomCode').textContent = room.roomId;
         document.getElementById('playerCount').textContent = room.players.length;
-        document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => {
-          const extraClass = isDarkenAvatar(p.avatar || 0) ? 'avatar-darken-bg' : '';
-          return `
-            <li style="padding: 6px 0; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-              <img class="${extraClass}" src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700; background:#000;" />
-              <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''}</span>
-            </li>
-          `;
-        }).join('');
+        document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => `
+          <li style="padding: 6px 0; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <img src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700;" />
+            <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''}</span>
+          </li>
+        `).join('');
         if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
         else document.getElementById('startGameBtn').classList.add('hidden');
       }
@@ -1142,19 +1201,16 @@
         document.getElementById('partyModal').classList.remove('hidden');
         startFireworksShow();
 
-        const crownedHTML = god.winningPlayers.map(w => {
-          const extraClass = isDarkenAvatar(w.avatar || 0) ? 'avatar-darken-bg' : '';
-          return `
-            <div class="crowned-avatar-card">
-              <div class="crown-wrapper">
-                <span class="golden-crown-icon">👑</span>
-                <img class="winner-avatar ${extraClass}" src="${AVATAR_LIST[w.avatar || 0]}" />
-              </div>
-              <div class="winner-name-tag">${w.name}</div>
-              <div class="winner-pts-tag">+${w.points} Pts</div>
+        const crownedHTML = god.winningPlayers.map(w => `
+          <div class="crowned-avatar-card">
+            <div class="crown-wrapper">
+              <span class="golden-crown-icon">👑</span>
+              <img class="winner-avatar" src="${AVATAR_LIST[w.avatar || 0]}" />
             </div>
-          `;
-        }).join('');
+            <div class="winner-name-tag">${w.name}</div>
+            <div class="winner-pts-tag">+${w.points} Pts</div>
+          </div>
+        `).join('');
 
         document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
         document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
