@@ -96,6 +96,7 @@ function generateRoomCode() {
 function getSanitizedRoom(room, forPlayerId) {
   if (!room) return null;
   const self = room.players.find(p => p.id === forPlayerId);
+  const activePlayers = room.players.filter(p => p.connected);
   return {
     roomId: room.roomId,
     state: room.state,
@@ -119,7 +120,7 @@ function getSanitizedRoom(room, forPlayerId) {
       image: room.currentCard ? room.currentCard.image : ''
     }) : null,
     votesCount: Object.keys(room.votes).length,
-    totalVoters: room.players.length,
+    totalVoters: activePlayers.length,
     gameOverData: room.state === 'GAME_OVER' ? room.gameOverData : null
   };
 }
@@ -160,7 +161,7 @@ io.on('connection', (socket) => {
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
       deckPool: secureShuffle(masterDeck),
-      impostorHistory: [], // Tracks past impostor IDs to prevent 3-in-a-row lockups
+      impostorHistory: [],
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -170,7 +171,8 @@ io.on('connection', (socket) => {
       votes: {},
       gameOverData: null,
       countdownTimer: null,
-      openingTimer: null
+      openingTimer: null,
+      countdownInProgress: false
     };
 
     socket.playerId = playerId;
@@ -216,33 +218,27 @@ io.on('connection', (socket) => {
   });
 
   function executeStartMatch(room) {
-    // 1. Pop non-repeating word
     if (!room.deckPool || room.deckPool.length === 0) {
       room.deckPool = secureShuffle(masterDeck);
     }
     room.currentCard = room.deckPool.pop();
+    room.countdownInProgress = false;
 
-    // 2. UNPREDICTABLE CRYPTOGRAPHIC RANDOM SELECTION
-    // All connected players are candidates
+    // TRUE RANDOM SELECTION: Pure randomness across all connected players
     const activePlayers = room.players.filter(p => p.connected);
-    let candidatePool = [...activePlayers];
+    let candidates = [...activePlayers];
 
-    // Anti 3-in-a-row guard: if the same player was impostor in BOTH of the last 2 matches,
-    // temporarily exclude them so they can't be chosen 3 times consecutively.
-    if (room.impostorHistory && room.impostorHistory.length >= 2 && candidatePool.length > 1) {
+    // Only prevent 3 consecutive times in a row for the same person
+    if (room.impostorHistory && room.impostorHistory.length >= 2 && candidates.length > 1) {
       const len = room.impostorHistory.length;
-      const last1 = room.impostorHistory[len - 1];
-      const last2 = room.impostorHistory[len - 2];
-      if (last1 === last2) {
-        candidatePool = candidatePool.filter(p => p.id !== last1);
+      if (room.impostorHistory[len - 1] === room.impostorHistory[len - 2]) {
+        candidates = candidates.filter(p => p.id !== room.impostorHistory[len - 1]);
       }
     }
 
-    // Pick completely at random from eligible candidates
-    const chosenIndex = crypto.randomInt(0, candidatePool.length);
-    const chosenImpostor = candidatePool[chosenIndex];
+    const chosenIndex = crypto.randomInt(0, candidates.length);
+    const chosenImpostor = candidates[chosenIndex];
 
-    // Record in history
     if (!room.impostorHistory) room.impostorHistory = [];
     room.impostorHistory.push(chosenImpostor.id);
     if (room.impostorHistory.length > 10) room.impostorHistory.shift();
@@ -274,8 +270,8 @@ io.on('connection', (socket) => {
     const room = rooms[socket.roomId];
     if (!room) return;
     if (room.hostId !== socket.playerId) return;
-    if (room.players.length < 3) {
-      return socket.emit('error_message', 'At least 3 players required.');
+    if (room.players.filter(p => p.connected).length < 3) {
+      return socket.emit('error_message', 'At least 3 connected players required.');
     }
     executeStartMatch(room);
   });
@@ -284,8 +280,8 @@ io.on('connection', (socket) => {
     const room = rooms[socket.roomId];
     if (!room) return;
     if (room.state !== 'GAME_OVER') return;
-    if (room.players.length < 3) {
-      return socket.emit('error_message', 'At least 3 players required.');
+    if (room.players.filter(p => p.connected).length < 3) {
+      return socket.emit('error_message', 'At least 3 connected players required.');
     }
     executeStartMatch(room);
   });
@@ -349,17 +345,24 @@ io.on('connection', (socket) => {
       reason: reason.trim()
     };
 
+    const activePlayers = room.players.filter(p => p.connected);
+
     room.players.forEach(p => {
       io.to(p.socketId).emit('vote_progress', {
         votesCount: Object.keys(room.votes).length,
-        totalVoters: room.players.length
+        totalVoters: activePlayers.length
       });
     });
 
-    if (Object.keys(room.votes).length === room.players.length) {
+    // When all active players have voted, trigger countdown
+    if (Object.keys(room.votes).length >= activePlayers.length && !room.countdownInProgress) {
+      room.countdownInProgress = true;
       room.state = 'COUNTDOWN';
       let secondsLeft = 10;
+
       io.to(room.roomId).emit('start_reveal_countdown', { count: secondsLeft });
+
+      if (room.countdownTimer) clearInterval(room.countdownTimer);
 
       room.countdownTimer = setInterval(() => {
         secondsLeft--;
@@ -367,105 +370,116 @@ io.on('connection', (socket) => {
           io.to(room.roomId).emit('countdown_tick', { count: secondsLeft });
         } else {
           clearInterval(room.countdownTimer);
+          room.countdownTimer = null;
 
-          const counts = {};
-          Object.values(room.votes).forEach(v => {
-            counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
-          });
-
-          let maxVotes = 0;
-          let accusedId = null;
-          let isTie = false;
-
-          for (const [sId, count] of Object.entries(counts)) {
-            if (count > maxVotes) {
-              maxVotes = count;
-              accusedId = sId;
-              isTie = false;
-            } else if (count === maxVotes) {
-              isTie = true;
-            }
-          }
-
-          const impostor = room.players.find(p => p.role === 'IMPOSTOR');
-          const impostorCaught = !isTie && (accusedId === impostor.id);
-
-          const correctDetectives = room.players.filter(p => {
-            const myVote = room.votes[p.id];
-            return myVote && myVote.suspectId === impostor.id;
-          });
-
-          const playerPointsAwarded = {};
-          room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
-
-          let winningPlayers = [];
-
-          if (impostorCaught) {
-            // Majority identified impostor: 1st prize (100) split among correct voters
-            winningPlayers = [...correctDetectives];
-            const share = Math.round(100 / correctDetectives.length);
-            correctDetectives.forEach(p => {
-              playerPointsAwarded[p.id] = share;
+          try {
+            // Tally votes received
+            const counts = {};
+            Object.values(room.votes).forEach(v => {
+              counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
             });
-          } else {
-            // Impostor evaded majority: Impostor gets 1st prize (100)
-            winningPlayers = [impostor];
-            playerPointsAwarded[impostor.id] = 100;
 
-            // If any detectives correctly caught him, they split 2nd prize (75)
-            if (correctDetectives.length > 0) {
-              const secondShare = Math.round(75 / correctDetectives.length);
+            let maxVotes = 0;
+            let accusedId = null;
+            let isTie = false;
+
+            for (const [sId, count] of Object.entries(counts)) {
+              if (count > maxVotes) {
+                maxVotes = count;
+                accusedId = sId;
+                isTie = false;
+              } else if (count === maxVotes) {
+                isTie = true;
+              }
+            }
+
+            const impostor = room.players.find(p => p.role === 'IMPOSTOR') || room.players[0];
+            const impostorCaught = !isTie && (accusedId === impostor.id);
+
+            // Detectives who correctly voted for the impostor
+            const correctDetectives = room.players.filter(p => {
+              const myVote = room.votes[p.id];
+              return myVote && myVote.suspectId === impostor.id;
+            });
+
+            const playerPointsAwarded = {};
+            room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
+
+            let winningPlayers = [];
+
+            if (impostorCaught) {
+              // CASE 1: MAJORITY FINDS IMPOSTOR
+              // 100 points shared equally among correct detectives. Impostor & others get 0.
+              winningPlayers = [...correctDetectives];
+              const share = correctDetectives.length > 0 ? Math.round(100 / correctDetectives.length) : 100;
               correctDetectives.forEach(p => {
-                playerPointsAwarded[p.id] = secondShare;
+                playerPointsAwarded[p.id] = share;
               });
-              winningPlayers.push(...correctDetectives);
+            } else {
+              // CASE 2 & 3: IMPOSTOR EVADED MAJORITY
+              // Impostor gets 1st prize (100 pts)
+              winningPlayers = [impostor];
+              playerPointsAwarded[impostor.id] = 100;
+
+              // If any detectives correctly identified the impostor, they share 75 pts (2nd prize)
+              if (correctDetectives.length > 0) {
+                const secondShare = Math.round(75 / correctDetectives.length);
+                correctDetectives.forEach(p => {
+                  playerPointsAwarded[p.id] = secondShare;
+                });
+                winningPlayers.push(...correctDetectives);
+              }
             }
-          }
 
-          // Leaderboard update
-          room.players.forEach(p => {
-            const avIndex = p.avatar !== undefined ? p.avatar : 0;
-            const stats = avatarLeaderboard[avIndex];
-            if (stats) {
-              const ptsThisMatch = playerPointsAwarded[p.id] || 0;
-              stats.matches += 1;
-              stats.lastPoints = ptsThisMatch;
-              stats.points += ptsThisMatch;
-            }
-          });
-          saveLeaderboard(avatarLeaderboard);
-          io.emit('leaderboard_update', avatarLeaderboard);
+            // Update Leaderboard
+            room.players.forEach(p => {
+              const avIndex = p.avatar !== undefined ? p.avatar : 0;
+              const stats = avatarLeaderboard[avIndex];
+              if (stats) {
+                const ptsThisMatch = playerPointsAwarded[p.id] || 0;
+                stats.matches += 1;
+                stats.lastPoints = ptsThisMatch;
+                stats.points += ptsThisMatch;
+              }
+            });
+            saveLeaderboard(avatarLeaderboard);
+            io.emit('leaderboard_update', avatarLeaderboard);
 
-          const formattedWinners = winningPlayers.map(w => ({
-            id: w.id,
-            name: w.name,
-            avatar: w.avatar,
-            points: playerPointsAwarded[w.id] || 0
-          }));
+            const formattedWinners = winningPlayers.map(w => ({
+              id: w.id,
+              name: w.name,
+              avatar: w.avatar,
+              points: playerPointsAwarded[w.id] || 0
+            }));
 
-          const detailedVotes = Object.values(room.votes).map(v => {
-            const voter = room.players.find(p => p.id === v.voterId);
-            const suspect = room.players.find(p => p.id === v.suspectId);
-            return {
-              voterName: voter ? voter.name : 'Unknown',
-              suspectName: suspect ? suspect.name : 'Unknown',
-              reason: v.reason
+            const detailedVotes = Object.values(room.votes).map(v => {
+              const voter = room.players.find(p => p.id === v.voterId);
+              const suspect = room.players.find(p => p.id === v.suspectId);
+              return {
+                voterName: voter ? voter.name : 'Unknown',
+                suspectName: suspect ? suspect.name : 'Unknown',
+                reason: v.reason
+              };
+            });
+
+            room.state = 'GAME_OVER';
+            room.gameOverData = {
+              impostorCaught,
+              impostorName: impostor.name,
+              secretWord: room.currentCard ? room.currentCard.word : 'Secret Topic',
+              secretCategory: room.currentCard ? room.currentCard.category : 'General',
+              winningPlayers: formattedWinners,
+              detailedVotes
             };
-          });
 
-          room.state = 'GAME_OVER';
-          room.gameOverData = {
-            impostorCaught,
-            impostorName: impostor.name,
-            secretWord: room.currentCard.word,
-            secretCategory: room.currentCard.category,
-            winningPlayers: formattedWinners,
-            detailedVotes
-          };
-
-          room.players.forEach(p => {
-            io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-          });
+            room.players.forEach(p => {
+              if (p.connected && p.socketId) {
+                io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
+              }
+            });
+          } catch (err) {
+            console.error('Error during tally:', err);
+          }
         }
       }, 1000);
     }
