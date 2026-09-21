@@ -11,20 +11,39 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// LEADERBOARD PERSISTENCE
+// -------------------------------------------------------------
+// LEADERBOARD (AVATAR, MATCHES, LAST MATCH PTS, GRAND TOTAL)
+// -------------------------------------------------------------
 const LEADERBOARD_FILE = path.join(__dirname, 'leaderboard.json');
+
+function createFreshLeaderboard() {
+  const board = [];
+  for (let i = 0; i < 8; i++) {
+    board.push({
+      avatarIndex: i,
+      matches: 0,
+      lastPoints: 0,
+      points: 0 // Grand Total sum
+    });
+  }
+  return board;
+}
 
 function initLeaderboard() {
   if (fs.existsSync(LEADERBOARD_FILE)) {
     try {
       const data = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8'));
-      if (Array.isArray(data) && data.length === 8) return data;
+      if (Array.isArray(data) && data.length === 8) {
+        return data.map((d, i) => ({
+          avatarIndex: i,
+          matches: Number(d.matches) || 0,
+          lastPoints: Number(d.lastPoints) || 0,
+          points: Number(d.points) || 0
+        }));
+      }
     } catch (e) {}
   }
-  const defaultBoard = [];
-  for (let i = 0; i < 8; i++) {
-    defaultBoard.push({ avatarIndex: i, matches: 0, wins: 0, losses: 0, points: 0 });
-  }
+  const defaultBoard = createFreshLeaderboard();
   saveLeaderboard(defaultBoard);
   return defaultBoard;
 }
@@ -39,6 +58,9 @@ function saveLeaderboard(board) {
 
 let avatarLeaderboard = initLeaderboard();
 
+// -------------------------------------------------------------
+// ZERO-REPETITION 200+ WORDS SYSTEM
+// -------------------------------------------------------------
 function loadAllDecks() {
   try {
     const raw = fs.readFileSync(path.join(__dirname, 'words.json'), 'utf8');
@@ -48,12 +70,11 @@ function loadAllDecks() {
     console.error('Error reading words.json');
   }
   return [
-    { category: 'Landmarks', word: 'Taj Mahal', image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=600' },
-    { category: 'Vehicles', word: 'Helicopter', image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=600' }
+    { category: 'Landmarks', word: 'Taj Mahal', image: '' },
+    { category: 'Vehicles', word: 'Helicopter', image: '' }
   ];
 }
 
-// Cryptographically secure shuffle
 function secureShuffle(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -63,6 +84,7 @@ function secureShuffle(array) {
   return arr;
 }
 
+const masterDeck = loadAllDecks();
 const rooms = {};
 
 function generateRoomCode() {
@@ -112,6 +134,13 @@ io.on('connection', (socket) => {
     socket.emit('leaderboard_update', avatarLeaderboard);
   });
 
+  // REAL-TIME GLOBAL LEADERBOARD RESET ACROSS ALL PLAYERS
+  socket.on('reset_leaderboard_global', () => {
+    avatarLeaderboard = createFreshLeaderboard();
+    saveLeaderboard(avatarLeaderboard);
+    io.emit('leaderboard_update', avatarLeaderboard);
+  });
+
   socket.on('resume_session', ({ roomId, playerId }) => {
     const room = rooms[roomId];
     if (!room) return socket.emit('session_resume_failed');
@@ -126,9 +155,6 @@ io.on('connection', (socket) => {
     socket.roomId = roomId;
 
     socket.emit('session_resumed', getSanitizedRoom(room, player.id));
-    io.to(roomId).emit('room_sync', {
-      players: room.players.map(p => ({ id: p.id, name: p.name, avatar: p.avatar, isHost: p.id === room.hostId, connected: p.connected }))
-    });
   });
 
   socket.on('create_room', ({ playerName, avatar, playerId }) => {
@@ -137,7 +163,7 @@ io.on('connection', (socket) => {
       roomId,
       hostId: playerId,
       players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
-      deckPool: secureShuffle(loadAllDecks()),
+      deckPool: secureShuffle(masterDeck), // 200 non-repeating words stack
       state: 'LOBBY',
       currentCard: null,
       currentRound: 1,
@@ -193,12 +219,13 @@ io.on('connection', (socket) => {
   });
 
   function executeStartMatch(room) {
+    // STRICT ZERO-REPETITION: Pop one item off the deck; only reshuffle once all 200 are exhausted
     if (!room.deckPool || room.deckPool.length === 0) {
-      room.deckPool = secureShuffle(loadAllDecks());
+      room.deckPool = secureShuffle(masterDeck);
     }
     room.currentCard = room.deckPool.pop();
 
-    // 100% UNPREDICTABLE, CRYPTOGRAPHICALLY UNBIASED IMPOSTOR SELECTION
+    // 100% CRYPTOGRAPHICALLY UNBIASED IMPOSTOR SELECTION
     const impostorIndex = crypto.randomInt(0, room.players.length);
     const chosenImpostor = room.players[impostorIndex];
 
@@ -206,7 +233,6 @@ io.on('connection', (socket) => {
       p.role = (p.id === chosenImpostor.id) ? 'IMPOSTOR' : 'CITIZEN';
     });
 
-    // START 3-SECOND LIGHTNING OPENING RITUAL
     room.state = 'OPENING_RITUAL';
     io.to(room.roomId).emit('trigger_opening_ritual');
 
@@ -236,7 +262,6 @@ io.on('connection', (socket) => {
     executeStartMatch(room);
   });
 
-  // ALLOW EVERY PLAYER TO START THE NEXT GAME
   socket.on('play_again', () => {
     const room = rooms[socket.roomId];
     if (!room) return;
@@ -408,15 +433,15 @@ io.on('connection', (socket) => {
             tierIndex += tiedGroup.length;
           }
 
+          // 100% ACCURATE MATH: Accumulate matches, record lastPoints, increment Grand Total sum
           room.players.forEach(p => {
             const avIndex = p.avatar !== undefined ? p.avatar : 0;
             const stats = avatarLeaderboard[avIndex];
             if (stats) {
+              const ptsThisMatch = playerPointsAwarded[p.id] || 0;
               stats.matches += 1;
-              const isWin = winningPlayers.some(w => w.id === p.id);
-              if (isWin) stats.wins += 1;
-              else stats.losses += 1;
-              stats.points += (playerPointsAwarded[p.id] || 0);
+              stats.lastPoints = ptsThisMatch;
+              stats.points += ptsThisMatch; // Sum of all points
             }
           });
           saveLeaderboard(avatarLeaderboard);
@@ -426,8 +451,7 @@ io.on('connection', (socket) => {
             id: w.id,
             name: w.name,
             avatar: w.avatar,
-            points: playerPointsAwarded[w.id] || 0,
-            title: w.id === impostor.id ? 'The Master Impostor' : 'Eagle-Eyed Detective'
+            points: playerPointsAwarded[w.id] || 0
           }));
 
           const detailedVotes = Object.values(room.votes).map(v => {
