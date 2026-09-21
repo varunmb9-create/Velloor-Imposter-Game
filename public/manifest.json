@@ -1,0 +1,23 @@
+{
+  "name": "IMPOSTER IN VELLOOR",
+  "short_name": "Velloor",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07050a",
+  "theme_color": "#ffd700",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/mDfc7FqP/1000129485.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.postimg.cc/mDfc7FqP/1000129485.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
