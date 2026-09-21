@@ -5,21 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTER IN VELLOOR</title>
 
-  <!-- 1. WHATSAPP & SOCIAL PREVIEWS -->
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Imposter in Velloor" />
-  <meta property="og:title" content="⚔️ IMPOSTER IN VELLOOR 🐉" />
-  <meta property="og:description" content="Enter the chamber, uncover the secret topic, identify the impostor, and claim the Golden Trophy!" />
-  <meta property="og:image" content="https://velloor-imposter-game.onrender.com/icon-512.png" />
-  <meta property="og:image:secure_url" content="https://velloor-imposter-game.onrender.com/icon-512.png" />
-  <meta property="og:image:type" content="image/png" />
-  <meta property="og:image:width" content="512" />
-  <meta property="og:image:height" content="512" />
-
-  <!-- 2. PWA & DEVICE ICONS -->
+  <!-- PWA & DEVICE ICONS -->
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/png" href="/icon-512.png" />
-  <link rel="apple-touch-icon" href="/icon-512.png" />
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
+  <link rel="apple-touch-icon" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
   <meta name="theme-color" content="#ffd700" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -49,6 +38,17 @@
       padding: 14px;
       overflow-x: hidden;
       position: relative;
+    }
+
+    /* FIRE PARTICLES CANVAS */
+    #emberCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
     }
 
     #dragonCanvas {
@@ -82,6 +82,64 @@
       opacity: 0;
       z-index: 26;
       transition: opacity 0.25s ease-out;
+    }
+
+    /* 3-SECOND LIGHTNING OPENING OVERLAY */
+    #openingRitualModal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 2, 8, 0.95);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      pointer-events: all;
+    }
+    #lightningCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 2001;
+    }
+    .opening-icon-wrapper {
+      position: relative;
+      z-index: 2005;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: openingIconPop 3s ease-out forwards;
+    }
+    .opening-emblem {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      border: 4px solid #ffd700;
+      box-shadow: 0 0 40px #ff9900, 0 0 80px rgba(255, 215, 0, 0.85);
+      object-fit: cover;
+    }
+    @keyframes openingIconPop {
+      0% { transform: scale(0.2); opacity: 0; filter: brightness(3); }
+      15% { transform: scale(1.18); opacity: 1; filter: brightness(1.7); }
+      30% { transform: scale(1); filter: brightness(1); }
+      85% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1.4); opacity: 0; filter: brightness(2.5); }
+    }
+    .opening-text {
+      margin-top: 18px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: #ffd700;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px #ff3b00;
     }
 
     .audio-controls {
@@ -237,75 +295,21 @@
     }
 
     /* 8 AVATAR TAP KINETIC MOTIONS */
-    @keyframes move-avatar-0 {
-      0% { transform: translateY(0); }
-      30% { transform: translateY(-12px); }
-      60% { transform: translateY(4px); }
-      80% { transform: translateY(-4px); }
-      100% { transform: translateY(0); }
-    }
+    @keyframes move-avatar-0 { 0% { transform: translateY(0); } 30% { transform: translateY(-12px); } 60% { transform: translateY(4px); } 80% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
     .avatar-img-anim-0 { animation: move-avatar-0 0.45s ease-out !important; }
-
-    @keyframes move-avatar-1 {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(-18deg) scale(1.1); }
-      50% { transform: rotate(18deg) scale(1.1); }
-      75% { transform: rotate(-8deg); }
-      100% { transform: rotate(0deg); }
-    }
+    @keyframes move-avatar-1 { 0% { transform: rotate(0deg); } 25% { transform: rotate(-18deg) scale(1.1); } 50% { transform: rotate(18deg) scale(1.1); } 75% { transform: rotate(-8deg); } 100% { transform: rotate(0deg); } }
     .avatar-img-anim-1 { animation: move-avatar-1 0.45s ease-in-out !important; }
-
-    @keyframes move-avatar-2 {
-      0% { transform: scale(1, 1); }
-      25% { transform: scale(1.2, 0.8) translateY(6px); }
-      50% { transform: scale(0.85, 1.25) translateY(-14px); }
-      75% { transform: scale(1.05, 0.95) translateY(0); }
-      100% { transform: scale(1, 1); }
-    }
+    @keyframes move-avatar-2 { 0% { transform: scale(1, 1); } 25% { transform: scale(1.2, 0.8) translateY(6px); } 50% { transform: scale(0.85, 1.25) translateY(-14px); } 75% { transform: scale(1.05, 0.95) translateY(0); } 100% { transform: scale(1, 1); } }
     .avatar-img-anim-2 { animation: move-avatar-2 0.45s cubic-bezier(0.28, 0.84, 0.42, 1) !important; }
-
-    @keyframes move-avatar-3 {
-      0% { transform: rotate(0deg) scale(1); }
-      50% { transform: rotate(180deg) scale(1.2); }
-      100% { transform: rotate(360deg) scale(1); }
-    }
+    @keyframes move-avatar-3 { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
     .avatar-img-anim-3 { animation: move-avatar-3 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
-
-    @keyframes move-avatar-4 {
-      0% { transform: translateX(0); }
-      15% { transform: translateX(-8px) rotate(-4deg); }
-      30% { transform: translateX(8px) rotate(4deg); }
-      45% { transform: translateX(-6px) rotate(-2deg); }
-      60% { transform: translateX(6px) rotate(2deg); }
-      75% { transform: translateX(-3px); }
-      100% { transform: translateX(0); }
-    }
+    @keyframes move-avatar-4 { 0% { transform: translateX(0); } 15% { transform: translateX(-8px) rotate(-4deg); } 30% { transform: translateX(8px) rotate(4deg); } 45% { transform: translateX(-6px) rotate(-2deg); } 60% { transform: translateX(6px) rotate(2deg); } 75% { transform: translateX(-3px); } 100% { transform: translateX(0); } }
     .avatar-img-anim-4 { animation: move-avatar-4 0.42s ease-in-out !important; }
-
-    @keyframes move-avatar-5 {
-      0% { transform: translateX(0) scale(1); }
-      30% { transform: translateX(-12px) skewX(-10deg); }
-      65% { transform: translateX(10px) skewX(8deg); }
-      85% { transform: translateX(-3px); }
-      100% { transform: translateX(0) scale(1); }
-    }
+    @keyframes move-avatar-5 { 0% { transform: translateX(0) scale(1); } 30% { transform: translateX(-12px) skewX(-10deg); } 65% { transform: translateX(10px) skewX(8deg); } 85% { transform: translateX(-3px); } 100% { transform: translateX(0) scale(1); } }
     .avatar-img-anim-5 { animation: move-avatar-5 0.44s ease-out !important; }
-
-    @keyframes move-avatar-6 {
-      0% { transform: scale(1); filter: brightness(1); }
-      40% { transform: scale(1.3); filter: brightness(1.6) drop-shadow(0 0 10px #ffd700); }
-      80% { transform: scale(0.95); filter: brightness(1.1); }
-      100% { transform: scale(1); filter: brightness(1); }
-    }
+    @keyframes move-avatar-6 { 0% { transform: scale(1); filter: brightness(1); } 40% { transform: scale(1.3); filter: brightness(1.6) drop-shadow(0 0 10px #ffd700); } 80% { transform: scale(0.95); filter: brightness(1.1); } 100% { transform: scale(1); filter: brightness(1); } }
     .avatar-img-anim-6 { animation: move-avatar-6 0.42s ease-out !important; }
-
-    @keyframes move-avatar-7 {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      30% { transform: translate(-8px, 8px) rotate(-10deg) scale(0.9); }
-      60% { transform: translate(10px, -10px) rotate(10deg) scale(1.2); }
-      85% { transform: translate(-2px, 2px); }
-      100% { transform: translate(0, 0) rotate(0deg); }
-    }
+    @keyframes move-avatar-7 { 0% { transform: translate(0, 0) rotate(0deg); } 30% { transform: translate(-8px, 8px) rotate(-10deg) scale(0.9); } 60% { transform: translate(10px, -10px) rotate(10deg) scale(1.2); } 85% { transform: translate(-2px, 2px); } 100% { transform: translate(0, 0) rotate(0deg); } }
     .avatar-img-anim-7 { animation: move-avatar-7 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important; }
 
     .badge-bar {
@@ -364,6 +368,35 @@
       border-left: 3px solid #ffd700;
     }
 
+    .voting-clues-wrapper {
+      margin: 10px 0 14px 0;
+      border: 1px solid rgba(255, 215, 0, 0.25);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
+    }
+    .voting-clues-table-container {
+      max-height: 135px;
+      overflow-y: auto;
+      margin-top: 6px;
+    }
+    .voting-clues-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .voting-clues-table th {
+      background: rgba(255, 215, 0, 0.08);
+      color: #ffd700;
+      padding: 5px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    }
+    .voting-clues-table td {
+      padding: 5px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
     .countdown-overlay {
       text-align: center;
       padding: 24px 0;
@@ -393,10 +426,7 @@
       padding: 20px;
     }
 
-    .trophy-container {
-      perspective: 800px;
-      margin-bottom: 12px;
-    }
+    .trophy-container { perspective: 800px; margin-bottom: 12px; }
     .gold-trophy {
       width: 120px;
       height: 155px;
@@ -432,56 +462,14 @@
       margin: 10px 0 16px 0;
       max-width: 90vw;
     }
-    .crowned-avatar-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .crown-wrapper {
-      position: relative;
-      width: 68px;
-      height: 68px;
-      margin-top: 16px;
-      background: #000;
-      border-radius: 50%;
-    }
-    .crown-wrapper img.winner-avatar {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #ffd700;
-      box-shadow: 0 0 16px rgba(255, 215, 0, 0.8);
-      background: #000;
-    }
-    .golden-crown-icon {
-      position: absolute;
-      top: -18px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.6rem;
-      filter: drop-shadow(0 0 8px #ffd700);
-      animation: crownBounce 2s infinite ease-in-out;
-    }
-    @keyframes crownBounce {
-      0% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-      50% { transform: translateX(-50%) translateY(-5px) rotate(4deg); }
-      100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-    }
-    .winner-name-tag {
-      margin-top: 4px;
-      font-weight: 800;
-      color: #ffd700;
-      font-size: 0.88rem;
-    }
-    .winner-pts-tag {
-      font-size: 0.76rem;
-      color: #76ff03;
-      font-weight: bold;
-    }
+    .crowned-avatar-card { display: flex; flex-direction: column; align-items: center; position: relative; }
+    .crown-wrapper { position: relative; width: 68px; height: 68px; margin-top: 16px; background: #000; border-radius: 50%; }
+    .crown-wrapper img.winner-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #ffd700; box-shadow: 0 0 16px rgba(255, 215, 0, 0.8); background: #000; }
+    .golden-crown-icon { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 1.6rem; filter: drop-shadow(0 0 8px #ffd700); animation: crownBounce 2s infinite ease-in-out; }
+    @keyframes crownBounce { 0% { transform: translateX(-50%) translateY(0) rotate(0deg); } 50% { transform: translateX(-50%) translateY(-5px) rotate(4deg); } 100% { transform: translateX(-50%) translateY(0) rotate(0deg); } }
+    .winner-name-tag { margin-top: 4px; font-weight: 800; color: #ffd700; font-size: 0.88rem; }
+    .winner-pts-tag { font-size: 0.76rem; color: #76ff03; font-weight: bold; }
 
-    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -507,31 +495,10 @@
       max-height: 85vh;
       overflow-y: auto;
     }
-    .lb-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.82rem;
-    }
-    .lb-table th {
-      color: #ffd700;
-      text-align: center;
-      padding: 8px 4px;
-      border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-    .lb-table td {
-      padding: 8px 4px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      text-align: center;
-    }
-    .lb-player-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-align: left;
-    }
+    .lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; }
+    .lb-table th { color: #ffd700; text-align: center; padding: 8px 4px; border-bottom: 1px solid rgba(255, 215, 0, 0.3); font-weight: 800; text-transform: uppercase; }
+    .lb-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center; }
+    .lb-player-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
   </style>
 </head>
 <body>
@@ -546,6 +513,16 @@
     <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
   </div>
 
+  <!-- 3-SECOND LIGHTNING OPENING RITUAL MODAL -->
+  <div id="openingRitualModal" class="hidden">
+    <canvas id="lightningCanvas"></canvas>
+    <div class="opening-icon-wrapper">
+      <img src="https://i.postimg.cc/mDfc7FqP/1000129485.png" class="opening-emblem" />
+      <div class="opening-text">VELLOOR TRIBUNAL</div>
+    </div>
+  </div>
+
+  <canvas id="emberCanvas"></canvas>
   <canvas id="dragonCanvas"></canvas>
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
@@ -651,18 +628,34 @@
       <button id="endCluesEarlyBtn" class="danger-btn hidden" onclick="endCluesEarly()">End Clues & Vote Now (Host)</button>
     </div>
 
-    <!-- 4. VOTING SCREEN -->
+    <!-- 4. VOTING SCREEN WITH CLUES TABLE RECAP -->
     <div id="screen-vote" class="hidden">
-      <h3 class="gold-text" style="text-align: center; margin-bottom: 6px;">VOTING TRIBUNAL</h3>
-      <p class="silver-text" style="text-align: center; font-size: 0.82rem; margin-bottom: 12px;">
-        Pick your suspect and explain why.
+      <h3 class="gold-text" style="text-align: center; margin-bottom: 4px;">VOTING TRIBUNAL</h3>
+      <p class="silver-text" style="text-align: center; font-size: 0.8rem; margin-bottom: 8px;">
+        Cross-examine clues from all 3 rounds and vote.
       </p>
+
+      <div class="voting-clues-wrapper">
+        <div class="gold-text" style="font-size: 0.78rem; text-transform: uppercase;">📜 All Round Clues Record:</div>
+        <div class="voting-clues-table-container">
+          <table class="voting-clues-table">
+            <thead>
+              <tr>
+                <th style="width: 22%;">Round</th>
+                <th style="width: 33%;">Player</th>
+                <th style="width: 45%;">Clue Transmitted</th>
+              </tr>
+            </thead>
+            <tbody id="votingCluesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
 
       <label class="silver-text" style="font-size: 0.8rem;">CHOOSE SUSPECT:</label>
       <select id="suspectSelect"></select>
 
       <label class="silver-text" style="font-size: 0.8rem; margin-top: 10px; display: block;">WHY ARE THEY THE IMPOSTOR?</label>
-      <textarea id="voteReason" rows="3" placeholder="Explain the discrepancy in their clues..."></textarea>
+      <textarea id="voteReason" rows="2" placeholder="Explain what exposed them in their clues..."></textarea>
 
       <button id="castVoteBtn" class="gold-btn" onclick="submitVote()">Confirm My Vote</button>
       <div id="voteStatus" class="silver-text" style="text-align: center; margin-top: 10px; font-size: 0.85rem;"></div>
@@ -690,7 +683,8 @@
       <div class="silver-text" style="font-size: 0.85rem; margin-bottom: 6px;">VOTES & REASONS:</div>
       <div id="breakdownList" style="max-height: 150px; overflow-y: auto; margin-bottom: 14px;"></div>
 
-      <button id="playAgainBtn" class="gold-btn hidden" onclick="playAgain()">Play Next Match (Host)</button>
+      <!-- EVERY PLAYER CAN NOW CLICK TO START NEXT MATCH -->
+      <button id="playAgainBtn" class="gold-btn" onclick="playAgain()">⚔️ Start Next Match</button>
     </div>
   </div>
 
@@ -701,9 +695,146 @@
       });
     }
 
+    // CONTINUOUS BACKGROUND EMBER PARTICLES
+    const emberCanvas = document.getElementById('emberCanvas');
+    const ectx = emberCanvas.getContext('2d');
+    let embers = [];
+
+    function resizeEmberCanvas() {
+      emberCanvas.width = window.innerWidth;
+      emberCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeEmberCanvas);
+    resizeEmberCanvas();
+
+    class EmberParticle {
+      constructor() { this.reset(true); }
+      reset(init = false) {
+        this.x = Math.random() * emberCanvas.width;
+        this.y = init ? Math.random() * emberCanvas.height : emberCanvas.height + Math.random() * 20;
+        this.size = 1.2 + Math.random() * 2.8;
+        this.speedY = -(0.6 + Math.random() * 1.6);
+        this.speedX = (Math.random() - 0.5) * 0.9;
+        this.alpha = 0.2 + Math.random() * 0.8;
+        this.fadeRate = 0.003 + Math.random() * 0.005;
+        this.color = Math.random() > 0.4 ? '#ff5500' : (Math.random() > 0.5 ? '#ff9900' : '#ffd700');
+      }
+      update() {
+        this.y += this.speedY;
+        this.x += this.speedX + Math.sin(this.y * 0.02) * 0.4;
+        this.alpha -= this.fadeRate;
+        if (this.alpha <= 0 || this.y < -10) this.reset(false);
+      }
+      draw() {
+        ectx.save();
+        ectx.globalAlpha = Math.max(0, this.alpha);
+        ectx.fillStyle = this.color;
+        ectx.shadowColor = this.color;
+        ectx.shadowBlur = 8;
+        ectx.beginPath();
+        ectx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ectx.fill();
+        ectx.restore();
+      }
+    }
+
+    for (let i = 0; i < 65; i++) embers.push(new EmberParticle());
+    function animateEmbers() {
+      ectx.clearRect(0, 0, emberCanvas.width, emberCanvas.height);
+      for (let i = 0; i < embers.length; i++) {
+        embers[i].update();
+        embers[i].draw();
+      }
+      requestAnimationFrame(animateEmbers);
+    }
+    animateEmbers();
+
+    // -------------------------------------------------------------
+    // 3-SECOND 8-DIRECTION LIGHTNING OPENING RITUAL ANIMATION
+    // -------------------------------------------------------------
+    const lCanvas = document.getElementById('lightningCanvas');
+    const lctx = lCanvas.getContext('2d');
+    let lightningRunning = false;
+
+    function resizeLightningCanvas() {
+      lCanvas.width = window.innerWidth;
+      lCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeLightningCanvas);
+    resizeLightningCanvas();
+
+    function drawLightningBolt(x1, y1, x2, y2, displace) {
+      if (displace < 4) {
+        lctx.beginPath();
+        lctx.moveTo(x1, y1);
+        lctx.lineTo(x2, y2);
+        lctx.stroke();
+        return;
+      }
+      const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * displace;
+      const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * displace;
+      drawLightningBolt(x1, y1, midX, midY, displace / 2);
+      drawLightningBolt(midX, midY, x2, y2, displace / 2);
+    }
+
+    function runLightningStrikes() {
+      const modal = document.getElementById('openingRitualModal');
+      modal.classList.remove('hidden');
+      lightningRunning = true;
+      playThunderOpeningSFX();
+
+      const startTime = Date.now();
+      const duration = 3000;
+
+      function renderFrame() {
+        if (!lightningRunning) return;
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= duration) {
+          lightningRunning = false;
+          modal.classList.add('hidden');
+          lctx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+          return;
+        }
+
+        lctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+        lctx.fillRect(0, 0, lCanvas.width, lCanvas.height);
+
+        const centerX = lCanvas.width / 2;
+        const centerY = lCanvas.height / 2;
+
+        // 8 Perimeter Origins (North, NE, East, SE, South, SW, West, NW)
+        const eightPoints = [
+          { x: centerX, y: -20 },
+          { x: lCanvas.width + 20, y: -20 },
+          { x: lCanvas.width + 20, y: centerY },
+          { x: lCanvas.width + 20, y: lCanvas.height + 20 },
+          { x: centerX, y: lCanvas.height + 20 },
+          { x: -20, y: lCanvas.height + 20 },
+          { x: -20, y: centerY },
+          { x: -20, y: -20 }
+        ];
+
+        // Random lightning strike strikes center from all 8 directions
+        if (Math.random() > 0.15) {
+          lctx.lineWidth = 3 + Math.random() * 2.5;
+          lctx.strokeStyle = Math.random() > 0.4 ? '#ffffff' : '#ffd700';
+          lctx.shadowColor = '#00e5ff';
+          lctx.shadowBlur = 24;
+
+          eightPoints.forEach(pt => {
+            if (Math.random() > 0.2) {
+              drawLightningBolt(pt.x, pt.y, centerX + (Math.random() - 0.5) * 40, centerY + (Math.random() - 0.5) * 40, 110);
+            }
+          });
+        }
+
+        requestAnimationFrame(renderFrame);
+      }
+      renderFrame();
+    }
+
     const socket = io();
 
-    // NEW DRAGON IMAGE LINK
     const DRAGON_IMG_SRC = 'https://i.postimg.cc/xq96mgrm/1000129477.png';
     const dragonImage = new Image();
     dragonImage.src = DRAGON_IMG_SRC;
@@ -816,6 +947,54 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.035);
+      } catch (e) {}
+    }
+
+    // SYNTHESIZED THUNDER & OPENING BOOM AUDIO
+    function playThunderOpeningSFX() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getSFXContext();
+        const now = ctx.currentTime;
+
+        // Rumble Noise
+        const bufferSize = ctx.sampleRate * 2.8;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(600, now);
+        filter.frequency.exponentialRampToValueAtTime(80, now + 2.6);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.65, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 2.7);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 2.8);
+
+        // Sub Bass Impact Tone
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(130, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + 2.2);
+
+        oscGain.gain.setValueAtTime(0.4, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 2.2);
       } catch (e) {}
     }
 
@@ -940,7 +1119,6 @@
         dctx.drawImage(dragonImage, -d.width / 2, -d.height / 2, d.width, d.height);
       }
 
-      // Spit flame in middle
       if (!d.flameDone && d.x > canvas.width * 0.25 && d.x < canvas.width * 0.75) {
         d.flameDone = true;
         playFlameSFX();
@@ -1163,6 +1341,12 @@
       showScreen('screen-lobby');
     });
 
+    // TRIGGERED ON GAME START: 8-WAY LIGHTNING OPENING RITUAL
+    socket.on('trigger_opening_ritual', () => {
+      closePartyModal();
+      runLightningStrikes();
+    });
+
     socket.on('full_state_update', (room) => {
       syncGameView(room);
     });
@@ -1231,6 +1415,20 @@
 
       if (room.state === 'VOTING_PHASE') {
         showScreen('screen-vote');
+
+        const cluesTableBody = document.getElementById('votingCluesTableBody');
+        if (room.clues && room.clues.length > 0) {
+          cluesTableBody.innerHTML = room.clues.map(c => `
+            <tr>
+              <td style="color:#ffd700; font-weight:bold;">Round ${c.round}</td>
+              <td style="font-weight:600; color:#fff;">${c.playerName}</td>
+              <td style="color:#cfd8dc; font-style:italic;">"${c.text}"</td>
+            </tr>
+          `).join('');
+        } else {
+          cluesTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888;">No clues recorded.</td></tr>`;
+        }
+
         const select = document.getElementById('suspectSelect');
         select.innerHTML = room.players.filter(p => p.id !== playerId).map(p => 
           `<option value="${p.id}">${p.name}</option>`
@@ -1286,9 +1484,6 @@
             <em style="color:#bbb;">"${v.reason}"</em>
           </div>
         `).join('');
-
-        if (isHost) document.getElementById('playAgainBtn').classList.remove('hidden');
-        else document.getElementById('playAgainBtn').classList.add('hidden');
       }
     }
 
