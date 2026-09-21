@@ -7,7 +7,11 @@ const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { 
+  cors: { origin: '*' },
+  pingTimeout: 30000,
+  pingInterval: 10000
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -93,6 +97,16 @@ function generateRoomCode() {
   return code;
 }
 
+function broadcastRoom(roomId) {
+  const room = rooms[roomId];
+  if (!room) return;
+  room.players.forEach(p => {
+    if (p.socketId && p.connected) {
+      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
+    }
+  });
+}
+
 function getSanitizedRoom(room, forPlayerId) {
   if (!room) return null;
   const self = room.players.find(p => p.id === forPlayerId);
@@ -115,14 +129,126 @@ function getSanitizedRoom(room, forPlayerId) {
     clues: room.clues,
     secretCard: self ? (self.role === 'IMPOSTOR' ? { role: 'IMPOSTOR' } : {
       role: 'CITIZEN',
-      category: room.currentCard ? room.currentCard.category : '',
-      word: room.currentCard ? room.currentCard.word : '',
+      category: room.currentCard ? room.currentCard.category : 'General',
+      word: room.currentCard ? room.currentCard.word : 'Secret Topic',
       image: room.currentCard ? room.currentCard.image : ''
     }) : null,
     votesCount: Object.keys(room.votes).length,
     totalVoters: activePlayers.length,
     gameOverData: room.state === 'GAME_OVER' ? room.gameOverData : null
   };
+}
+
+function finalizeMatchVotes(room) {
+  if (!room || room.state === 'GAME_OVER') return;
+  if (room.countdownTimer) {
+    clearInterval(room.countdownTimer);
+    room.countdownTimer = null;
+  }
+
+  const activePlayers = room.players.filter(p => p.connected);
+  
+  // Safe vote fill for absent voters
+  activePlayers.forEach(p => {
+    if (!room.votes[p.id]) {
+      const candidates = activePlayers.filter(cand => cand.id !== p.id);
+      const randomSuspect = candidates.length > 0 ? candidates[0].id : p.id;
+      room.votes[p.id] = { voterId: p.id, suspectId: randomSuspect, reason: 'Time expired' };
+    }
+  });
+
+  const counts = {};
+  Object.values(room.votes).forEach(v => {
+    counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
+  });
+
+  let maxVotes = 0;
+  let accusedId = null;
+  let isTie = false;
+
+  for (const [sId, count] of Object.entries(counts)) {
+    if (count > maxVotes) {
+      maxVotes = count;
+      accusedId = sId;
+      isTie = false;
+    } else if (count === maxVotes) {
+      isTie = true;
+    }
+  }
+
+  const impostor = room.players.find(p => p.role === 'IMPOSTOR') || activePlayers[0];
+  const impostorCaught = !isTie && (accusedId === impostor.id);
+
+  const correctDetectives = activePlayers.filter(p => {
+    const myVote = room.votes[p.id];
+    return myVote && myVote.suspectId === impostor.id;
+  });
+
+  const playerPointsAwarded = {};
+  room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
+
+  let winningPlayers = [];
+
+  if (impostorCaught) {
+    winningPlayers = [...correctDetectives];
+    const share = correctDetectives.length > 0 ? Math.round(100 / correctDetectives.length) : 100;
+    correctDetectives.forEach(p => {
+      playerPointsAwarded[p.id] = share;
+    });
+  } else {
+    winningPlayers = [impostor];
+    playerPointsAwarded[impostor.id] = 100;
+
+    if (correctDetectives.length > 0) {
+      const secondShare = Math.round(75 / correctDetectives.length);
+      correctDetectives.forEach(p => {
+        playerPointsAwarded[p.id] = secondShare;
+      });
+      winningPlayers.push(...correctDetectives);
+    }
+  }
+
+  room.players.forEach(p => {
+    const avIndex = p.avatar !== undefined ? p.avatar : 0;
+    const stats = avatarLeaderboard[avIndex];
+    if (stats) {
+      const ptsThisMatch = playerPointsAwarded[p.id] || 0;
+      stats.matches += 1;
+      stats.lastPoints = ptsThisMatch;
+      stats.points += ptsThisMatch;
+    }
+  });
+  saveLeaderboard(avatarLeaderboard);
+  io.emit('leaderboard_update', avatarLeaderboard);
+
+  const formattedWinners = winningPlayers.map(w => ({
+    id: w.id,
+    name: w.name,
+    avatar: w.avatar,
+    points: playerPointsAwarded[w.id] || 0
+  }));
+
+  const detailedVotes = Object.values(room.votes).map(v => {
+    const voter = room.players.find(p => p.id === v.voterId);
+    const suspect = room.players.find(p => p.id === v.suspectId);
+    return {
+      voterName: voter ? voter.name : 'Unknown',
+      suspectName: suspect ? suspect.name : 'Unknown',
+      reason: v.reason
+    };
+  });
+
+  room.state = 'GAME_OVER';
+  room.gameOverData = {
+    impostorCaught,
+    impostorName: impostor.name,
+    secretWord: room.currentCard ? room.currentCard.word : 'Secret Topic',
+    secretCategory: room.currentCard ? room.currentCard.category : 'General',
+    winningPlayers: formattedWinners,
+    detailedVotes
+  };
+
+  broadcastRoom(room.roomId);
 }
 
 io.on('connection', (socket) => {
@@ -145,6 +271,12 @@ io.on('connection', (socket) => {
     const player = room.players.find(p => p.id === playerId);
     if (!player) return socket.emit('session_resume_failed');
 
+    // Clear any disconnect cleanup timer
+    if (player.disconnectTimeout) {
+      clearTimeout(player.disconnectTimeout);
+      player.disconnectTimeout = null;
+    }
+
     player.socketId = socket.id;
     player.connected = true;
     socket.join(roomId);
@@ -152,6 +284,7 @@ io.on('connection', (socket) => {
     socket.roomId = roomId;
 
     socket.emit('session_resumed', getSanitizedRoom(room, player.id));
+    broadcastRoom(roomId);
   });
 
   socket.on('create_room', ({ playerName, avatar, playerId }) => {
@@ -171,8 +304,7 @@ io.on('connection', (socket) => {
       votes: {},
       gameOverData: null,
       countdownTimer: null,
-      openingTimer: null,
-      countdownInProgress: false
+      openingTimer: null
     };
 
     socket.playerId = playerId;
@@ -180,7 +312,7 @@ io.on('connection', (socket) => {
     socket.join(roomId);
 
     socket.emit('room_created', { roomId, playerId });
-    socket.emit('full_state_update', getSanitizedRoom(rooms[roomId], playerId));
+    broadcastRoom(roomId);
   });
 
   socket.on('join_room', ({ roomId, playerName, avatar, playerId }) => {
@@ -201,9 +333,13 @@ io.on('connection', (socket) => {
         connected: true
       });
     } else {
+      if (existing.disconnectTimeout) {
+        clearTimeout(existing.disconnectTimeout);
+        existing.disconnectTimeout = null;
+      }
       existing.socketId = socket.id;
       existing.name = playerName;
-      existing.avatar = avatar || existing.avatar;
+      existing.avatar = avatar !== undefined ? avatar : existing.avatar;
       existing.connected = true;
     }
 
@@ -212,9 +348,7 @@ io.on('connection', (socket) => {
     socket.join(code);
 
     socket.emit('room_joined', { roomId: code, playerId });
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
+    broadcastRoom(code);
   });
 
   function executeStartMatch(room) {
@@ -222,13 +356,14 @@ io.on('connection', (socket) => {
       room.deckPool = secureShuffle(masterDeck);
     }
     room.currentCard = room.deckPool.pop();
-    room.countdownInProgress = false;
+    if (room.countdownTimer) {
+      clearInterval(room.countdownTimer);
+      room.countdownTimer = null;
+    }
 
-    // TRUE RANDOM SELECTION: Pure randomness across all connected players
     const activePlayers = room.players.filter(p => p.connected);
     let candidates = [...activePlayers];
 
-    // Only prevent 3 consecutive times in a row for the same person
     if (room.impostorHistory && room.impostorHistory.length >= 2 && candidates.length > 1) {
       const len = room.impostorHistory.length;
       if (room.impostorHistory[len - 1] === room.impostorHistory[len - 2]) {
@@ -260,9 +395,7 @@ io.on('connection', (socket) => {
       room.votes = {};
       room.gameOverData = null;
 
-      room.players.forEach(p => {
-        io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-      });
+      broadcastRoom(room.roomId);
     }, 3000);
   }
 
@@ -315,9 +448,7 @@ io.on('connection', (socket) => {
       room.state = 'VOTING_PHASE';
     }
 
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
+    broadcastRoom(room.roomId);
   });
 
   socket.on('end_clues_early', () => {
@@ -326,9 +457,7 @@ io.on('connection', (socket) => {
     if (room.state !== 'CLUE_PHASE') return;
 
     room.state = 'VOTING_PHASE';
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    });
+    broadcastRoom(room.roomId);
   });
 
   socket.on('submit_vote', ({ suspectId, reason }) => {
@@ -354,9 +483,7 @@ io.on('connection', (socket) => {
       });
     });
 
-    // When all active players have voted, trigger countdown
-    if (Object.keys(room.votes).length >= activePlayers.length && !room.countdownInProgress) {
-      room.countdownInProgress = true;
+    if (Object.keys(room.votes).length >= activePlayers.length && room.state === 'VOTING_PHASE') {
       room.state = 'COUNTDOWN';
       let secondsLeft = 10;
 
@@ -369,145 +496,48 @@ io.on('connection', (socket) => {
         if (secondsLeft > 0) {
           io.to(room.roomId).emit('countdown_tick', { count: secondsLeft });
         } else {
-          clearInterval(room.countdownTimer);
-          room.countdownTimer = null;
-
-          try {
-            // Tally votes received
-            const counts = {};
-            Object.values(room.votes).forEach(v => {
-              counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
-            });
-
-            let maxVotes = 0;
-            let accusedId = null;
-            let isTie = false;
-
-            for (const [sId, count] of Object.entries(counts)) {
-              if (count > maxVotes) {
-                maxVotes = count;
-                accusedId = sId;
-                isTie = false;
-              } else if (count === maxVotes) {
-                isTie = true;
-              }
-            }
-
-            const impostor = room.players.find(p => p.role === 'IMPOSTOR') || room.players[0];
-            const impostorCaught = !isTie && (accusedId === impostor.id);
-
-            // Detectives who correctly voted for the impostor
-            const correctDetectives = room.players.filter(p => {
-              const myVote = room.votes[p.id];
-              return myVote && myVote.suspectId === impostor.id;
-            });
-
-            const playerPointsAwarded = {};
-            room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
-
-            let winningPlayers = [];
-
-            if (impostorCaught) {
-              // CASE 1: MAJORITY FINDS IMPOSTOR
-              // 100 points shared equally among correct detectives. Impostor & others get 0.
-              winningPlayers = [...correctDetectives];
-              const share = correctDetectives.length > 0 ? Math.round(100 / correctDetectives.length) : 100;
-              correctDetectives.forEach(p => {
-                playerPointsAwarded[p.id] = share;
-              });
-            } else {
-              // CASE 2 & 3: IMPOSTOR EVADED MAJORITY
-              // Impostor gets 1st prize (100 pts)
-              winningPlayers = [impostor];
-              playerPointsAwarded[impostor.id] = 100;
-
-              // If any detectives correctly identified the impostor, they share 75 pts (2nd prize)
-              if (correctDetectives.length > 0) {
-                const secondShare = Math.round(75 / correctDetectives.length);
-                correctDetectives.forEach(p => {
-                  playerPointsAwarded[p.id] = secondShare;
-                });
-                winningPlayers.push(...correctDetectives);
-              }
-            }
-
-            // Update Leaderboard
-            room.players.forEach(p => {
-              const avIndex = p.avatar !== undefined ? p.avatar : 0;
-              const stats = avatarLeaderboard[avIndex];
-              if (stats) {
-                const ptsThisMatch = playerPointsAwarded[p.id] || 0;
-                stats.matches += 1;
-                stats.lastPoints = ptsThisMatch;
-                stats.points += ptsThisMatch;
-              }
-            });
-            saveLeaderboard(avatarLeaderboard);
-            io.emit('leaderboard_update', avatarLeaderboard);
-
-            const formattedWinners = winningPlayers.map(w => ({
-              id: w.id,
-              name: w.name,
-              avatar: w.avatar,
-              points: playerPointsAwarded[w.id] || 0
-            }));
-
-            const detailedVotes = Object.values(room.votes).map(v => {
-              const voter = room.players.find(p => p.id === v.voterId);
-              const suspect = room.players.find(p => p.id === v.suspectId);
-              return {
-                voterName: voter ? voter.name : 'Unknown',
-                suspectName: suspect ? suspect.name : 'Unknown',
-                reason: v.reason
-              };
-            });
-
-            room.state = 'GAME_OVER';
-            room.gameOverData = {
-              impostorCaught,
-              impostorName: impostor.name,
-              secretWord: room.currentCard ? room.currentCard.word : 'Secret Topic',
-              secretCategory: room.currentCard ? room.currentCard.category : 'General',
-              winningPlayers: formattedWinners,
-              detailedVotes
-            };
-
-            room.players.forEach(p => {
-              if (p.connected && p.socketId) {
-                io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-              }
-            });
-          } catch (err) {
-            console.error('Error during tally:', err);
-          }
+          finalizeMatchVotes(room);
         }
       }, 1000);
     }
   });
 
+  socket.on('force_reveal_now', () => {
+    const room = rooms[socket.roomId];
+    if (room && (room.state === 'COUNTDOWN' || room.state === 'VOTING_PHASE')) {
+      finalizeMatchVotes(room);
+    }
+  });
+
+  // 30-SECOND DISCONNECT GRACE PERIOD PREVENTS FLAPPING HOSTS
   socket.on('disconnect', () => {
     const room = rooms[socket.roomId];
     if (!room) return;
 
     const p = room.players.find(x => x.id === socket.playerId);
-    if (p) p.connected = false;
+    if (!p) return;
 
-    const anyConnected = room.players.some(x => x.connected);
-    if (!anyConnected) {
-      if (room.countdownTimer) clearInterval(room.countdownTimer);
-      if (room.openingTimer) clearTimeout(room.openingTimer);
-      delete rooms[socket.roomId];
-    } else {
-      if (room.hostId === socket.playerId) {
-        const nextHost = room.players.find(x => x.connected);
-        if (nextHost) room.hostId = nextHost.id;
-      }
-      room.players.forEach(player => {
-        if (player.connected) {
-          io.to(player.socketId).emit('full_state_update', getSanitizedRoom(room, player.id));
+    p.connected = false;
+
+    p.disconnectTimeout = setTimeout(() => {
+      // If still disconnected after 30 seconds, re-evaluate room and host
+      if (!p.connected) {
+        const anyConnected = room.players.some(x => x.connected);
+        if (!anyConnected) {
+          if (room.countdownTimer) clearInterval(room.countdownTimer);
+          if (room.openingTimer) clearTimeout(room.openingTimer);
+          delete rooms[socket.roomId];
+        } else {
+          if (room.hostId === p.id) {
+            const nextHost = room.players.find(x => x.connected);
+            if (nextHost) room.hostId = nextHost.id;
+          }
+          broadcastRoom(room.roomId);
         }
-      });
-    }
+      }
+    }, 30000); // 30 second grace window
+
+    broadcastRoom(room.roomId);
   });
 });
 
