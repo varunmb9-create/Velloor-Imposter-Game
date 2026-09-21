@@ -220,7 +220,7 @@ io.on('connection', (socket) => {
     }
     room.currentCard = room.deckPool.pop();
 
-    // 100% UNBIASED, TRUE CRYPTOGRAPHIC RANDOMNESS (Zero memory bias)
+    // 100% UNPREDICTABLE CRYPTOGRAPHIC IMPOSTOR SELECTION
     const impostorIndex = crypto.randomInt(0, room.players.length);
     const chosenImpostor = room.players[impostorIndex];
 
@@ -502,5 +502,8 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => console.log(`Server online on ${PORT}`));
+// BIND TO BOTH 10000 AND 0.0.0.0 FOR RENDER'S PROXY ROUTER
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server online on port ${PORT}`);
+});
