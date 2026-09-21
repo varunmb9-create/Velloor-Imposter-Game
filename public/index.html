@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTER IN VELLOOR</title>
 
+  <!-- WHATSAPP PREVIEW CARD METADATA -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Imposter in Velloor" />
+  <meta property="og:title" content="⚔️ IMPOSTER IN VELLOOR 🐉" />
+  <meta property="og:description" content="Enter the chamber, uncover the secret topic, identify the impostor, and claim the Golden Trophy!" />
+  <meta property="og:image" content="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
+  <meta property="og:image:secure_url" content="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+
+  <!-- MOBILE APP ICON & PWA SUPPORT -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
+  <link rel="apple-touch-icon" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
+  <meta name="theme-color" content="#ffd700" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Velloor" />
+
   <script src="/socket.io/socket.io.js"></script>
   <style>
     :root {
@@ -215,11 +236,7 @@
       transform: scale(1.06);
     }
 
-    /* --------------------------------------------------------
-       8 HIGH-VISIBILITY DIVERSE KINETIC ANIMATIONS FOR AVATARS
-       -------------------------------------------------------- */
-
-    /* Avatar 1: Powerful Double Nod / War Bow */
+    /* 8 AVATAR TAP KINETIC MOTIONS */
     @keyframes move-avatar-0 {
       0% { transform: translateY(0); }
       30% { transform: translateY(-12px); }
@@ -229,7 +246,6 @@
     }
     .avatar-img-anim-0 { animation: move-avatar-0 0.45s ease-out !important; }
 
-    /* Avatar 2: Sharp Side-to-Side Head Tilt / Dodge */
     @keyframes move-avatar-1 {
       0% { transform: rotate(0deg); }
       25% { transform: rotate(-18deg) scale(1.1); }
@@ -239,7 +255,6 @@
     }
     .avatar-img-anim-1 { animation: move-avatar-1 0.45s ease-in-out !important; }
 
-    /* Avatar 3: High Elastic Bounce / Jump */
     @keyframes move-avatar-2 {
       0% { transform: scale(1, 1); }
       25% { transform: scale(1.2, 0.8) translateY(6px); }
@@ -249,7 +264,6 @@
     }
     .avatar-img-anim-2 { animation: move-avatar-2 0.45s cubic-bezier(0.28, 0.84, 0.42, 1) !important; }
 
-    /* Avatar 4: Fast Full 360 Spin */
     @keyframes move-avatar-3 {
       0% { transform: rotate(0deg) scale(1); }
       50% { transform: rotate(180deg) scale(1.2); }
@@ -257,7 +271,6 @@
     }
     .avatar-img-anim-3 { animation: move-avatar-3 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
 
-    /* Avatar 5: Quick Earthquake Shiver / Tremor */
     @keyframes move-avatar-4 {
       0% { transform: translateX(0); }
       15% { transform: translateX(-8px) rotate(-4deg); }
@@ -269,7 +282,6 @@
     }
     .avatar-img-anim-4 { animation: move-avatar-4 0.42s ease-in-out !important; }
 
-    /* Avatar 6: Horizontal Combat Slide */
     @keyframes move-avatar-5 {
       0% { transform: translateX(0) scale(1); }
       30% { transform: translateX(-12px) skewX(-10deg); }
@@ -279,7 +291,6 @@
     }
     .avatar-img-anim-5 { animation: move-avatar-5 0.44s ease-out !important; }
 
-    /* Avatar 7: Pulse Flare / Shockwave */
     @keyframes move-avatar-6 {
       0% { transform: scale(1); filter: brightness(1); }
       40% { transform: scale(1.3); filter: brightness(1.6) drop-shadow(0 0 10px #ffd700); }
@@ -288,7 +299,6 @@
     }
     .avatar-img-anim-6 { animation: move-avatar-6 0.42s ease-out !important; }
 
-    /* Avatar 8: Diagonal Lunging Strike */
     @keyframes move-avatar-7 {
       0% { transform: translate(0, 0) rotate(0deg); }
       30% { transform: translate(-8px, 8px) rotate(-10deg) scale(0.9); }
@@ -471,6 +481,7 @@
       font-weight: bold;
     }
 
+    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -539,6 +550,7 @@
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
+  <!-- LEADERBOARD MODAL -->
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -600,6 +612,8 @@
       </div>
       <p class="silver-text" style="font-size:0.85rem; margin-bottom: 8px;">PLAYERS IN CHAMBER (<span id="playerCount">0</span>):</p>
       <ul id="lobbyPlayers" style="list-style: none; margin-bottom: 15px;"></ul>
+
+      <button id="shareWhatsAppBtn" class="silver-btn" style="margin-bottom: 8px;" onclick="shareGameInvite()">📲 Invite Friends via WhatsApp</button>
       <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
     </div>
 
@@ -713,19 +727,15 @@
 
       card.onclick = () => {
         playTouchSFX();
-
-        // Update selected state border
         document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedAvatarIndex = idx;
 
-        // Reset previous image animations
         document.querySelectorAll('.avatar-card img').forEach((image, i) => {
           image.classList.remove(`avatar-img-anim-${i}`);
         });
 
-        // Trigger dynamic animation directly on image
-        void img.offsetWidth; // Force CSS reflow
+        void img.offsetWidth;
         img.classList.add(`avatar-img-anim-${idx}`);
 
         setTimeout(() => {
@@ -738,9 +748,6 @@
       avatarGridEl.appendChild(card);
     });
 
-    // -------------------------------------------------------------------
-    // AUDIO STATE GUARDS
-    // -------------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -1046,6 +1053,7 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
+    // LEADERBOARD RENDER: Player, Win, Loss, Points, Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
@@ -1125,6 +1133,14 @@
       if (!name || !code) return alert('Enter both name and 4-letter code');
       localStorage.setItem('velloor_player_name', name);
       socket.emit('join_room', { roomId: code, playerName: name, avatar: selectedAvatarIndex, playerId });
+    }
+
+    function shareGameInvite() {
+      const code = currentRoomId || '';
+      const shareUrl = window.location.origin;
+      const text = `⚔️ Join my chamber in *IMPOSTER IN VELLOOR*!\nRoom Code: *${code}*\nPlay now: ${shareUrl}`;
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(whatsappUrl, '_blank');
     }
 
     socket.on('room_created', (data) => {
