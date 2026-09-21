@@ -38,9 +38,14 @@
       padding: 14px;
       overflow-x: hidden;
       position: relative;
+      transition: background 0.8s ease;
     }
 
-    /* FIRE PARTICLES CANVAS */
+    /* IMPOSTOR WIN: DARK BLOOD-RED VIGNETTE ATMOSPHERE */
+    body.impostor-win-atmosphere {
+      background: radial-gradient(circle at center, #2d0006 0%, #080002 100%) !important;
+    }
+
     #emberCanvas {
       position: fixed;
       top: 0;
@@ -162,6 +167,12 @@
       backdrop-filter: blur(4px);
     }
 
+    .exit-btn {
+      background: rgba(40, 10, 10, 0.85);
+      border: 1px solid #ff5252;
+      color: #ff9999;
+    }
+
     .title-wrapper {
       text-align: center;
       margin-bottom: 16px;
@@ -195,6 +206,12 @@
       width: 100%;
       max-width: 480px;
       backdrop-filter: blur(12px);
+      transition: border-color 0.8s ease, box-shadow 0.8s ease;
+    }
+
+    .container.impostor-win-box {
+      border-color: #ff1a1a !important;
+      box-shadow: 0 14px 50px rgba(0,0,0,0.95), 0 0 35px rgba(255, 20, 20, 0.45) !important;
     }
 
     .gold-btn {
@@ -290,9 +307,7 @@
       border-color: #ffd700;
       box-shadow: 0 0 14px rgba(255, 215, 0, 0.65);
     }
-    .avatar-card.selected img {
-      transform: scale(1.06);
-    }
+    .avatar-card.selected img { transform: scale(1.06); }
 
     /* 8 AVATAR TAP KINETIC MOTIONS */
     @keyframes move-avatar-0 { 0% { transform: translateY(0); } 30% { transform: translateY(-12px); } 60% { transform: translateY(4px); } 80% { transform: translateY(-4px); } 100% { transform: translateY(0); } }
@@ -325,12 +340,57 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
+    /* -------------------------------------------------------------
+       ICE CRUST CARD REVEAL SYSTEM
+       ------------------------------------------------------------- */
+    .role-card-wrapper {
+      position: relative;
+      margin-bottom: 14px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    .ice-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(160, 220, 255, 0.88) 0%, rgba(200, 240, 255, 0.72) 40%, rgba(130, 200, 245, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 2px solid #b3e5fc;
+      border-radius: 12px;
+      box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.7), 0 0 20px rgba(129, 212, 250, 0.55);
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      padding: 16px;
+      text-align: center;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .ice-overlay:active { transform: scale(0.98); }
+    .ice-overlay.shattered {
+      opacity: 0 !important;
+      transform: scale(1.15) !important;
+      pointer-events: none !important;
+    }
+    .ice-icon { font-size: 2.8rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px #00e5ff); animation: iceGlowPulse 1.8s infinite alternate; }
+    @keyframes iceGlowPulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 6px #00e5ff); }
+      100% { transform: scale(1.1); filter: drop-shadow(0 0 16px #ffffff); }
+    }
+    .ice-title { font-weight: 900; color: #002b4d; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
+    .ice-sub { font-weight: 700; color: #023859; font-size: 0.78rem; margin-top: 4px; }
+
     .role-box {
       border: 1px solid var(--gold-border);
       border-radius: 12px;
       padding: 14px;
       text-align: center;
-      margin-bottom: 14px;
       background: rgba(0, 0, 0, 0.45);
     }
     .role-box img {
@@ -424,6 +484,13 @@
       align-items: center;
       text-align: center;
       padding: 20px;
+      transition: background 0.8s ease;
+    }
+
+    /* IMPOSTOR WIN: RED REVEAL GLOW ON MODAL */
+    #partyModal.impostor-win-modal {
+      background: rgba(26, 2, 6, 0.96) !important;
+      box-shadow: inset 0 0 100px rgba(255, 0, 20, 0.45);
     }
 
     .trophy-container { perspective: 800px; margin-bottom: 12px; }
@@ -470,6 +537,7 @@
     .winner-name-tag { margin-top: 4px; font-weight: 800; color: #ffd700; font-size: 0.88rem; }
     .winner-pts-tag { font-size: 0.76rem; color: #76ff03; font-weight: bold; }
 
+    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -490,15 +558,15 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
       border-radius: 14px;
       width: 100%;
-      max-width: 480px;
+      max-width: 530px;
       padding: 18px;
-      max-height: 85vh;
+      max-height: 88vh;
       overflow-y: auto;
     }
-    .lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.82rem; }
-    .lb-table th { color: #ffd700; text-align: center; padding: 8px 4px; border-bottom: 1px solid rgba(255, 215, 0, 0.3); font-weight: 800; text-transform: uppercase; }
-    .lb-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center; }
-    .lb-player-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
+    .lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.78rem; }
+    .lb-table th { color: #ffd700; text-align: center; padding: 7px 3px; border-bottom: 1px solid rgba(255, 215, 0, 0.3); font-weight: 800; text-transform: uppercase; font-size: 0.74rem; }
+    .lb-table td { padding: 7px 3px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center; }
+    .lb-player-cell { display: flex; align-items: center; gap: 6px; text-align: left; }
   </style>
 </head>
 <body>
@@ -508,6 +576,7 @@
   </audio>
 
   <div class="audio-controls">
+    <button id="exitGameHeaderBtn" class="sound-btn exit-btn hidden" onclick="exitGameDirectly()">🚪 Exit</button>
     <button class="sound-btn" onclick="openLeaderboard()">🏆 Board</button>
     <button id="soundToggleBtn" class="sound-btn" onclick="toggleBGM()">🔊 Music: ON</button>
     <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
@@ -531,16 +600,18 @@
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 class="gold-text" style="font-size: 1.25rem;">LEADERBOARD</h2>
+        <h2 class="gold-text" style="font-size: 1.2rem;">LEADERBOARD</h2>
         <button class="sound-btn" onclick="closeLeaderboard()">✕</button>
       </div>
       <table class="lb-table">
         <thead>
           <tr>
             <th style="text-align:left;">Player</th>
+            <th style="color:#b3e5fc;">Matches</th>
             <th>Win</th>
             <th>Loss</th>
             <th style="color:#00e5ff;">Points</th>
+            <th style="color:#ffeb3b;">Avg Win%</th>
             <th style="color:#76ff03;">Grand Total</th>
           </tr>
         </thead>
@@ -561,7 +632,7 @@
     <button class="gold-btn" style="max-width: 260px;" onclick="closePartyModal()">View Detailed Breakdown</button>
   </div>
 
-  <div class="container">
+  <div class="container" id="mainGameContainer">
     <div class="title-wrapper">
       <h1 class="flame-title" id="mainBannerHeading">IMPOSTER IN VELLOOR</h1>
     </div>
@@ -592,26 +663,36 @@
 
       <button id="shareWhatsAppBtn" class="silver-btn" style="margin-bottom: 8px;" onclick="shareGameInvite()">📲 Invite Friends via WhatsApp</button>
       <button id="startGameBtn" class="gold-btn hidden" onclick="startGame()">Initiate Game (Host)</button>
+      <button class="danger-btn" onclick="exitGameDirectly()">🚪 Exit Chamber</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN -->
+    <!-- 3. GAMEPLAY SCREEN (WITH ICE CRUST REVEAL CARD) -->
     <div id="screen-game" class="hidden">
       <div class="badge-bar">
         <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
         <span id="turnIndicator" class="silver-text">Current Turn: ...</span>
       </div>
 
-      <div id="citizenRoleCard" class="role-box hidden">
-        <div style="font-size: 0.8rem; color: #aaa;">TOPIC CATEGORY: <strong id="cardCategory" class="gold-text"></strong></div>
-        <div id="cardWord" style="font-size: 1.5rem; font-weight: 800; color: #ffd700; margin: 6px 0;"></div>
-        <div id="cardImageWrap"></div>
-      </div>
+      <!-- ICE COVERED CARD CONTAINER -->
+      <div class="role-card-wrapper" id="roleCardWrapper">
+        <div id="iceCrustOverlay" class="ice-overlay" onclick="shatterIceCard()">
+          <div class="ice-icon">🧊</div>
+          <div class="ice-title">FROZEN SECRET TOPIC</div>
+          <div class="ice-sub">Tap to shatter ice & inspect your role</div>
+        </div>
 
-      <div id="impostorRoleCard" class="role-box impostor-box hidden">
-        <h2 style="color: #ff4d4d; letter-spacing: 1px;">YOU ARE THE IMPOSTOR!</h2>
-        <p style="font-size: 0.88rem; color: #ffb3b3; margin-top: 6px;">
-          You do not know the topic. Listen closely to clues, blend in, and survive the vote!
-        </p>
+        <div id="citizenRoleCard" class="role-box hidden">
+          <div style="font-size: 0.8rem; color: #aaa;">TOPIC CATEGORY: <strong id="cardCategory" class="gold-text"></strong></div>
+          <div id="cardWord" style="font-size: 1.5rem; font-weight: 800; color: #ffd700; margin: 6px 0;"></div>
+          <div id="cardImageWrap"></div>
+        </div>
+
+        <div id="impostorRoleCard" class="role-box impostor-box hidden">
+          <h2 style="color: #ff4d4d; letter-spacing: 1px;">YOU ARE THE IMPOSTOR!</h2>
+          <p style="font-size: 0.88rem; color: #ffb3b3; margin-top: 6px;">
+            You do not know the topic. Listen closely to clues, blend in, and survive the vote!
+          </p>
+        </div>
       </div>
 
       <div style="font-size: 0.82rem; color: #aaa; margin-top: 8px;">CLUE TRANSCRIPTS (3 ROUNDS TOTAL):</div>
@@ -683,8 +764,8 @@
       <div class="silver-text" style="font-size: 0.85rem; margin-bottom: 6px;">VOTES & REASONS:</div>
       <div id="breakdownList" style="max-height: 150px; overflow-y: auto; margin-bottom: 14px;"></div>
 
-      <!-- EVERY PLAYER CAN NOW CLICK TO START NEXT MATCH -->
       <button id="playAgainBtn" class="gold-btn" onclick="playAgain()">⚔️ Start Next Match</button>
+      <button class="danger-btn" onclick="exitGameDirectly()">🚪 Exit Chamber</button>
     </div>
   </div>
 
@@ -749,9 +830,7 @@
     }
     animateEmbers();
 
-    // -------------------------------------------------------------
     // 3-SECOND 8-DIRECTION LIGHTNING OPENING RITUAL ANIMATION
-    // -------------------------------------------------------------
     const lCanvas = document.getElementById('lightningCanvas');
     const lctx = lCanvas.getContext('2d');
     let lightningRunning = false;
@@ -802,7 +881,6 @@
         const centerX = lCanvas.width / 2;
         const centerY = lCanvas.height / 2;
 
-        // 8 Perimeter Origins (North, NE, East, SE, South, SW, West, NW)
         const eightPoints = [
           { x: centerX, y: -20 },
           { x: lCanvas.width + 20, y: -20 },
@@ -814,7 +892,6 @@
           { x: -20, y: -20 }
         ];
 
-        // Random lightning strike strikes center from all 8 directions
         if (Math.random() > 0.15) {
           lctx.lineWidth = 3 + Math.random() * 2.5;
           lctx.strokeStyle = Math.random() > 0.4 ? '#ffffff' : '#ffd700';
@@ -950,14 +1027,64 @@
       } catch (e) {}
     }
 
-    // SYNTHESIZED THUNDER & OPENING BOOM AUDIO
+    // ICE SHATTER BREAKING SOUND EFFECT
+    function playIceBreakSFX() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getSFXContext();
+        const now = ctx.currentTime;
+
+        // Crystalline high crunch
+        const bufferSize = ctx.sampleRate * 0.45;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(3200, now);
+        filter.Q.setValueAtTime(3.5, now);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.45, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.45);
+
+        // Glass bell chime
+        const chime = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(1900, now);
+        chime.frequency.exponentialRampToValueAtTime(750, now + 0.35);
+        chimeGain.gain.setValueAtTime(0.3, now);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        chime.connect(chimeGain);
+        chimeGain.connect(ctx.destination);
+        chime.start(now);
+        chime.stop(now + 0.35);
+      } catch (e) {}
+    }
+
+    function shatterIceCard() {
+      playIceBreakSFX();
+      const ice = document.getElementById('iceCrustOverlay');
+      if (ice) ice.classList.add('shattered');
+    }
+
     function playThunderOpeningSFX() {
       if (!sfxEnabled) return;
       try {
         const ctx = getSFXContext();
         const now = ctx.currentTime;
 
-        // Rumble Noise
         const bufferSize = ctx.sampleRate * 2.8;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -981,7 +1108,6 @@
         noise.start(now);
         noise.stop(now + 2.8);
 
-        // Sub Bass Impact Tone
         const osc = ctx.createOscillator();
         const oscGain = ctx.createGain();
         osc.type = 'sawtooth';
@@ -1233,24 +1359,30 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
+    // 1. UPDATED LEADERBOARD: Matches first after avatar, Avg Win % before Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
       tbody.innerHTML = sorted.map((row, idx) => {
         const matchPts = latestMatchPoints[row.avatarIndex] !== undefined ? latestMatchPoints[row.avatarIndex] : 0;
+        const totalMatches = row.matches || (row.wins + row.losses) || 0;
+        const winPercent = totalMatches > 0 ? Math.round((row.wins / totalMatches) * 100) : 0;
+
         return `
           <tr>
             <td>
               <div class="lb-player-cell">
-                <span class="gold-text" style="font-size:0.78rem;">#${idx + 1}</span>
-                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
+                <span class="gold-text" style="font-size:0.75rem;">#${idx + 1}</span>
+                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
                 <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
               </div>
             </td>
+            <td style="color:#b3e5fc; font-weight:700;">${totalMatches}</td>
             <td style="color:#ffd700; font-weight:700;">${row.wins}</td>
             <td style="color:#ff6b6b; font-weight:700;">${row.losses}</td>
             <td style="color:#00e5ff; font-weight:700;">+${matchPts}</td>
-            <td style="color:#76ff03; font-weight:800; font-size:0.95rem;">${row.points}</td>
+            <td style="color:#ffeb3b; font-weight:800;">${winPercent}%</td>
+            <td style="color:#76ff03; font-weight:800; font-size:0.92rem;">${row.points}</td>
           </tr>
         `;
       }).join('');
@@ -1269,6 +1401,28 @@
         document.getElementById(s).classList.add('hidden');
       });
       document.getElementById(id).classList.remove('hidden');
+
+      // Header Exit Button Visibility
+      const exitBtn = document.getElementById('exitGameHeaderBtn');
+      if (id === 'screen-auth') {
+        exitBtn.classList.add('hidden');
+      } else {
+        exitBtn.classList.remove('hidden');
+      }
+    }
+
+    // 4. UNIVERSAL EXIT BUTTON FOR EVERY PLAYER
+    function exitGameDirectly() {
+      if (confirm('Leave this chamber and return to the main entry screen?')) {
+        localStorage.removeItem('velloor_room_id');
+        currentRoomId = null;
+        document.body.classList.remove('impostor-win-atmosphere');
+        document.getElementById('partyModal').classList.add('hidden');
+        document.getElementById('partyModal').classList.remove('impostor-win-modal');
+        document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
+        showScreen('screen-auth');
+        window.location.reload();
+      }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -1341,9 +1495,16 @@
       showScreen('screen-lobby');
     });
 
-    // TRIGGERED ON GAME START: 8-WAY LIGHTNING OPENING RITUAL
     socket.on('trigger_opening_ritual', () => {
       closePartyModal();
+      document.body.classList.remove('impostor-win-atmosphere');
+      document.getElementById('partyModal').classList.remove('impostor-win-modal');
+      document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
+
+      // Reset Ice Cover for the new match
+      const ice = document.getElementById('iceCrustOverlay');
+      if (ice) ice.classList.remove('shattered');
+
       runLightningStrikes();
     });
 
@@ -1358,6 +1519,10 @@
       isHost = (room.hostId === playerId);
 
       if (room.state === 'LOBBY') {
+        document.body.classList.remove('impostor-win-atmosphere');
+        document.getElementById('partyModal').classList.remove('impostor-win-modal');
+        document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
+
         showScreen('screen-lobby');
         document.getElementById('lobbyRoomCode').textContent = room.roomId;
         document.getElementById('playerCount').textContent = room.players.length;
@@ -1447,7 +1612,20 @@
           });
         }
 
-        document.getElementById('partyModal').classList.remove('hidden');
+        // 2. IF IMPOSTOR WINS: OMINOUS BLOOD-RED DARK ATMOSPHERE (TEXTS REMAIN EXACT)
+        const pModal = document.getElementById('partyModal');
+        const container = document.getElementById('mainGameContainer');
+        if (!god.impostorCaught) {
+          document.body.classList.add('impostor-win-atmosphere');
+          pModal.classList.add('impostor-win-modal');
+          container.classList.add('impostor-win-box');
+        } else {
+          document.body.classList.remove('impostor-win-atmosphere');
+          pModal.classList.remove('impostor-win-modal');
+          container.classList.remove('impostor-win-box');
+        }
+
+        pModal.classList.remove('hidden');
         startFireworksShow();
 
         const crownedHTML = god.winningPlayers.map(w => `
@@ -1464,6 +1642,7 @@
         document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
         document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
 
+        // Texts remain completely preserved
         if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
           document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to the detectives below:`;
