@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>IMPOSTER IN VELLOOR</title>
+  <title>IMPOSTOR IN VELLOOR</title>
 
-  <!-- Google Font for Calligraphic "Let's Go" -->
+  <!-- THEMATIC IN-GAME CALLIGRAPHY FONT (CINZEL DECORATIVE) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
 
   <!-- PWA & DEVICE ICONS -->
   <link rel="manifest" href="/manifest.json" />
@@ -93,7 +93,7 @@
       transition: opacity 0.25s ease-out;
     }
 
-    /* CALLIGRAPHY "LET'S GO" THUNDER OPENING MODAL */
+    /* THEMATIC 3-SECOND "LET'S GO" THUNDER RITUAL MODAL */
     #openingRitualModal {
       position: fixed;
       top: 0;
@@ -127,20 +127,23 @@
       animation: calligPop 3s ease-out forwards;
     }
     .calligraphy-title {
-      font-family: 'Great Vibes', cursive;
-      font-size: 5.5rem;
-      color: #ffd700;
-      text-shadow: 0 0 25px #ff9400, 0 0 50px #ff3b00, 0 0 90px rgba(255, 215, 0, 0.9);
-      letter-spacing: 2px;
-      line-height: 1.1;
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      font-size: 3.6rem;
+      text-transform: uppercase;
+      letter-spacing: 6px;
       text-align: center;
+      background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 50px rgba(255, 69, 0, 0.8));
     }
     @keyframes calligPop {
       0% { transform: scale(0.3); opacity: 0; filter: brightness(3); }
-      18% { transform: scale(1.15); opacity: 1; filter: brightness(1.8); }
+      18% { transform: scale(1.12); opacity: 1; filter: brightness(1.6); }
       32% { transform: scale(1); filter: brightness(1); }
-      85% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(1.45); opacity: 0; filter: brightness(2.5); }
+      85% { transform: scale(1.04); opacity: 1; }
+      100% { transform: scale(1.35); opacity: 0; filter: brightness(2.2); }
     }
 
     .audio-controls {
@@ -335,7 +338,7 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
-    /* ICE COVERED ROLE CARD */
+    /* FROZEN SECRET TOPIC CARD REVEAL */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -527,7 +530,7 @@
     .winner-name-tag { margin-top: 4px; font-weight: 800; color: #ffd700; font-size: 0.88rem; }
     .winner-pts-tag { font-size: 0.76rem; color: #76ff03; font-weight: bold; }
 
-    /* CLEAN LEADERBOARD MODAL */
+    /* LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -572,11 +575,11 @@
     <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
   </div>
 
-  <!-- 3-SECOND CALLIGRAPHIC "LET'S GO" THUNDER RITUAL MODAL -->
+  <!-- THEMATIC IN-GAME "LET'S GO" THUNDER RITUAL MODAL -->
   <div id="openingRitualModal" class="hidden">
     <canvas id="lightningCanvas"></canvas>
     <div class="opening-calligraphy-wrapper">
-      <div class="calligraphy-title">Let's go</div>
+      <div class="calligraphy-title">LET'S GO</div>
     </div>
   </div>
 
@@ -623,7 +626,7 @@
 
   <div class="container" id="mainGameContainer">
     <div class="title-wrapper">
-      <h1 class="flame-title" id="mainBannerHeading">IMPOSTER IN VELLOOR</h1>
+      <h1 class="flame-title" id="mainBannerHeading">IMPOSTOR IN VELLOOR</h1>
     </div>
 
     <!-- 1. AUTH / JOIN SCREEN -->
@@ -818,9 +821,7 @@
     }
     animateEmbers();
 
-    // -------------------------------------------------------------
-    // CALLIGRAPHIC "LET'S GO" 8-WAY THUNDER ANIMATION
-    // -------------------------------------------------------------
+    // IN-GAME THEMATIC "LET'S GO" 8-WAY THUNDER ANIMATION
     const lCanvas = document.getElementById('lightningCanvas');
     const lctx = lCanvas.getContext('2d');
     let lightningRunning = false;
@@ -1351,7 +1352,6 @@
       }
     }
 
-    // 100% ACCURATE LEADERBOARD: Avatar | Matches Played | Last Match | Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
@@ -1449,7 +1449,7 @@
     function shareGameInvite() {
       const code = currentRoomId || '';
       const shareUrl = window.location.origin;
-      const text = `⚔️ Join my chamber in *IMPOSTER IN VELLOOR*!\nRoom Code: *${code}*\nPlay now: ${shareUrl}`;
+      const text = `⚔️ Join my chamber in *IMPOSTOR IN VELLOOR*!\nRoom Code: *${code}*\nPlay now: ${shareUrl}`;
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');
     }
