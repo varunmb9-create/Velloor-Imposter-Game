@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTER IN VELLOOR</title>
 
+  <!-- Google Font for Calligraphic "Let's Go" -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
   <!-- PWA & DEVICE ICONS -->
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
@@ -41,7 +46,6 @@
       transition: background 0.8s ease;
     }
 
-    /* IMPOSTOR WIN: DARK BLOOD-RED VIGNETTE ATMOSPHERE */
     body.impostor-win-atmosphere {
       background: radial-gradient(circle at center, #2d0006 0%, #080002 100%) !important;
     }
@@ -89,14 +93,14 @@
       transition: opacity 0.25s ease-out;
     }
 
-    /* 3-SECOND LIGHTNING OPENING OVERLAY */
+    /* CALLIGRAPHY "LET'S GO" THUNDER OPENING MODAL */
     #openingRitualModal {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(4, 2, 8, 0.95);
+      background: rgba(4, 2, 8, 0.96);
       z-index: 2000;
       display: flex;
       flex-direction: column;
@@ -113,38 +117,30 @@
       pointer-events: none;
       z-index: 2001;
     }
-    .opening-icon-wrapper {
+    .opening-calligraphy-wrapper {
       position: relative;
       z-index: 2005;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      animation: openingIconPop 3s ease-out forwards;
+      animation: calligPop 3s ease-out forwards;
     }
-    .opening-emblem {
-      width: 170px;
-      height: 170px;
-      border-radius: 50%;
-      border: 4px solid #ffd700;
-      box-shadow: 0 0 40px #ff9900, 0 0 80px rgba(255, 215, 0, 0.85);
-      object-fit: cover;
-    }
-    @keyframes openingIconPop {
-      0% { transform: scale(0.2); opacity: 0; filter: brightness(3); }
-      15% { transform: scale(1.18); opacity: 1; filter: brightness(1.7); }
-      30% { transform: scale(1); filter: brightness(1); }
-      85% { transform: scale(1.04); opacity: 1; }
-      100% { transform: scale(1.4); opacity: 0; filter: brightness(2.5); }
-    }
-    .opening-text {
-      margin-top: 18px;
-      font-size: 1.4rem;
-      font-weight: 900;
-      letter-spacing: 4px;
+    .calligraphy-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: 5.5rem;
       color: #ffd700;
-      text-transform: uppercase;
-      text-shadow: 0 0 20px #ff3b00;
+      text-shadow: 0 0 25px #ff9400, 0 0 50px #ff3b00, 0 0 90px rgba(255, 215, 0, 0.9);
+      letter-spacing: 2px;
+      line-height: 1.1;
+      text-align: center;
+    }
+    @keyframes calligPop {
+      0% { transform: scale(0.3); opacity: 0; filter: brightness(3); }
+      18% { transform: scale(1.15); opacity: 1; filter: brightness(1.8); }
+      32% { transform: scale(1); filter: brightness(1); }
+      85% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1.45); opacity: 0; filter: brightness(2.5); }
     }
 
     .audio-controls {
@@ -166,7 +162,6 @@
       font-weight: bold;
       backdrop-filter: blur(4px);
     }
-
     .exit-btn {
       background: rgba(40, 10, 10, 0.85);
       border: 1px solid #ff5252;
@@ -340,16 +335,13 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
-    /* -------------------------------------------------------------
-       ICE CRUST CARD REVEAL SYSTEM
-       ------------------------------------------------------------- */
+    /* ICE COVERED ROLE CARD */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
       overflow: hidden;
       border-radius: 12px;
     }
-
     .ice-overlay {
       position: absolute;
       top: 0;
@@ -486,8 +478,6 @@
       padding: 20px;
       transition: background 0.8s ease;
     }
-
-    /* IMPOSTOR WIN: RED REVEAL GLOW ON MODAL */
     #partyModal.impostor-win-modal {
       background: rgba(26, 2, 6, 0.96) !important;
       box-shadow: inset 0 0 100px rgba(255, 0, 20, 0.45);
@@ -537,7 +527,7 @@
     .winner-name-tag { margin-top: 4px; font-weight: 800; color: #ffd700; font-size: 0.88rem; }
     .winner-pts-tag { font-size: 0.76rem; color: #76ff03; font-weight: bold; }
 
-    /* LEADERBOARD MODAL */
+    /* CLEAN LEADERBOARD MODAL */
     #leaderboardModal {
       position: fixed;
       top: 0;
@@ -558,15 +548,15 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
       border-radius: 14px;
       width: 100%;
-      max-width: 530px;
+      max-width: 480px;
       padding: 18px;
-      max-height: 88vh;
+      max-height: 85vh;
       overflow-y: auto;
     }
-    .lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.78rem; }
-    .lb-table th { color: #ffd700; text-align: center; padding: 7px 3px; border-bottom: 1px solid rgba(255, 215, 0, 0.3); font-weight: 800; text-transform: uppercase; font-size: 0.74rem; }
-    .lb-table td { padding: 7px 3px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center; }
-    .lb-player-cell { display: flex; align-items: center; gap: 6px; text-align: left; }
+    .lb-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.84rem; }
+    .lb-table th { color: #ffd700; text-align: center; padding: 8px 6px; border-bottom: 1px solid rgba(255, 215, 0, 0.3); font-weight: 800; text-transform: uppercase; font-size: 0.8rem; }
+    .lb-table td { padding: 8px 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); text-align: center; }
+    .lb-player-cell { display: flex; align-items: center; gap: 8px; text-align: left; }
   </style>
 </head>
 <body>
@@ -582,12 +572,11 @@
     <button id="sfxToggleBtn" class="sound-btn" onclick="toggleSFX()">🔥 SFX: ON</button>
   </div>
 
-  <!-- 3-SECOND LIGHTNING OPENING RITUAL MODAL -->
+  <!-- 3-SECOND CALLIGRAPHIC "LET'S GO" THUNDER RITUAL MODAL -->
   <div id="openingRitualModal" class="hidden">
     <canvas id="lightningCanvas"></canvas>
-    <div class="opening-icon-wrapper">
-      <img src="https://i.postimg.cc/mDfc7FqP/1000129485.png" class="opening-emblem" />
-      <div class="opening-text">VELLOOR TRIBUNAL</div>
+    <div class="opening-calligraphy-wrapper">
+      <div class="calligraphy-title">Let's go</div>
     </div>
   </div>
 
@@ -596,22 +585,22 @@
   <canvas id="fireworksCanvas"></canvas>
   <div id="flameGlow"></div>
 
-  <!-- LEADERBOARD MODAL -->
+  <!-- CLEAN LEADERBOARD MODAL (AVATAR, MATCHES, LAST MATCH PTS, GRAND TOTAL) -->
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 class="gold-text" style="font-size: 1.2rem;">LEADERBOARD</h2>
-        <button class="sound-btn" onclick="closeLeaderboard()">✕</button>
+        <h2 class="gold-text" style="font-size: 1.25rem;">LEADERBOARD</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="sound-btn exit-btn" onclick="requestResetLeaderboard()">🔄 Reset Board</button>
+          <button class="sound-btn" onclick="closeLeaderboard()">✕</button>
+        </div>
       </div>
       <table class="lb-table">
         <thead>
           <tr>
-            <th style="text-align:left;">Player</th>
-            <th style="color:#b3e5fc;">Matches</th>
-            <th>Win</th>
-            <th>Loss</th>
-            <th style="color:#00e5ff;">Points</th>
-            <th style="color:#ffeb3b;">Avg Win%</th>
+            <th style="text-align:left;">Avatar</th>
+            <th style="color:#b3e5fc;">Matches Played</th>
+            <th style="color:#00e5ff;">Last Match</th>
             <th style="color:#76ff03;">Grand Total</th>
           </tr>
         </thead>
@@ -673,7 +662,6 @@
         <span id="turnIndicator" class="silver-text">Current Turn: ...</span>
       </div>
 
-      <!-- ICE COVERED CARD CONTAINER -->
       <div class="role-card-wrapper" id="roleCardWrapper">
         <div id="iceCrustOverlay" class="ice-overlay" onclick="shatterIceCard()">
           <div class="ice-icon">🧊</div>
@@ -830,7 +818,9 @@
     }
     animateEmbers();
 
-    // 3-SECOND 8-DIRECTION LIGHTNING OPENING RITUAL ANIMATION
+    // -------------------------------------------------------------
+    // CALLIGRAPHIC "LET'S GO" 8-WAY THUNDER ANIMATION
+    // -------------------------------------------------------------
     const lCanvas = document.getElementById('lightningCanvas');
     const lctx = lCanvas.getContext('2d');
     let lightningRunning = false;
@@ -928,7 +918,6 @@
     ];
 
     let selectedAvatarIndex = 0;
-    let latestMatchPoints = {};
 
     const avatarGridEl = document.getElementById('avatarGrid');
     AVATAR_LIST.forEach((url, idx) => {
@@ -1027,14 +1016,12 @@
       } catch (e) {}
     }
 
-    // ICE SHATTER BREAKING SOUND EFFECT
     function playIceBreakSFX() {
       if (!sfxEnabled) return;
       try {
         const ctx = getSFXContext();
         const now = ctx.currentTime;
 
-        // Crystalline high crunch
         const bufferSize = ctx.sampleRate * 0.45;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -1057,7 +1044,6 @@
         noise.start(now);
         noise.stop(now + 0.45);
 
-        // Glass bell chime
         const chime = ctx.createOscillator();
         const chimeGain = ctx.createGain();
         chime.type = 'sine';
@@ -1359,33 +1345,30 @@
       document.getElementById('leaderboardModal').classList.add('hidden');
     }
 
-    // 1. UPDATED LEADERBOARD: Matches first after avatar, Avg Win % before Grand Total
+    function requestResetLeaderboard() {
+      if (confirm('Are you sure you want to reset the Leaderboard to 0 for all players in this game?')) {
+        socket.emit('reset_leaderboard_global');
+      }
+    }
+
+    // 100% ACCURATE LEADERBOARD: Avatar | Matches Played | Last Match | Grand Total
     socket.on('leaderboard_update', (board) => {
       const sorted = [...board].sort((a, b) => b.points - a.points);
       const tbody = document.getElementById('lbTableBody');
-      tbody.innerHTML = sorted.map((row, idx) => {
-        const matchPts = latestMatchPoints[row.avatarIndex] !== undefined ? latestMatchPoints[row.avatarIndex] : 0;
-        const totalMatches = row.matches || (row.wins + row.losses) || 0;
-        const winPercent = totalMatches > 0 ? Math.round((row.wins / totalMatches) * 100) : 0;
-
-        return `
-          <tr>
-            <td>
-              <div class="lb-player-cell">
-                <span class="gold-text" style="font-size:0.75rem;">#${idx + 1}</span>
-                <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
-                <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
-              </div>
-            </td>
-            <td style="color:#b3e5fc; font-weight:700;">${totalMatches}</td>
-            <td style="color:#ffd700; font-weight:700;">${row.wins}</td>
-            <td style="color:#ff6b6b; font-weight:700;">${row.losses}</td>
-            <td style="color:#00e5ff; font-weight:700;">+${matchPts}</td>
-            <td style="color:#ffeb3b; font-weight:800;">${winPercent}%</td>
-            <td style="color:#76ff03; font-weight:800; font-size:0.92rem;">${row.points}</td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = sorted.map((row, idx) => `
+        <tr>
+          <td>
+            <div class="lb-player-cell">
+              <span class="gold-text" style="font-size:0.75rem;">#${idx + 1}</span>
+              <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
+              <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
+            </div>
+          </td>
+          <td style="color:#b3e5fc; font-weight:700;">${row.matches || 0}</td>
+          <td style="color:#00e5ff; font-weight:700;">+${row.lastPoints || 0}</td>
+          <td style="color:#76ff03; font-weight:800; font-size:0.95rem;">${row.points || 0}</td>
+        </tr>
+      `).join('');
     });
 
     let playerId = localStorage.getItem('velloor_player_id');
@@ -1402,16 +1385,11 @@
       });
       document.getElementById(id).classList.remove('hidden');
 
-      // Header Exit Button Visibility
       const exitBtn = document.getElementById('exitGameHeaderBtn');
-      if (id === 'screen-auth') {
-        exitBtn.classList.add('hidden');
-      } else {
-        exitBtn.classList.remove('hidden');
-      }
+      if (id === 'screen-auth') exitBtn.classList.add('hidden');
+      else exitBtn.classList.remove('hidden');
     }
 
-    // 4. UNIVERSAL EXIT BUTTON FOR EVERY PLAYER
     function exitGameDirectly() {
       if (confirm('Leave this chamber and return to the main entry screen?')) {
         localStorage.removeItem('velloor_room_id');
@@ -1501,7 +1479,6 @@
       document.getElementById('partyModal').classList.remove('impostor-win-modal');
       document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
 
-      // Reset Ice Cover for the new match
       const ice = document.getElementById('iceCrustOverlay');
       if (ice) ice.classList.remove('shattered');
 
@@ -1605,14 +1582,6 @@
         showScreen('screen-results');
         const god = room.gameOverData;
 
-        latestMatchPoints = {};
-        if (god.winningPlayers) {
-          god.winningPlayers.forEach(w => {
-            latestMatchPoints[w.avatar] = w.points;
-          });
-        }
-
-        // 2. IF IMPOSTOR WINS: OMINOUS BLOOD-RED DARK ATMOSPHERE (TEXTS REMAIN EXACT)
         const pModal = document.getElementById('partyModal');
         const container = document.getElementById('mainGameContainer');
         if (!god.impostorCaught) {
@@ -1642,7 +1611,6 @@
         document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
         document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
 
-        // Texts remain completely preserved
         if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
           document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to the detectives below:`;
