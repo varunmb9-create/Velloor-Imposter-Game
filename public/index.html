@@ -288,7 +288,6 @@
       z-index: 2;
     }
 
-    /* BLAZING FIRE RING AROUND SELECTED AVATAR */
     .avatar-card.selected {
       border-color: #ffaa00;
       box-shadow: 0 0 16px rgba(255, 170, 0, 0.8), 0 0 28px rgba(255, 68, 0, 0.6);
@@ -310,8 +309,7 @@
       }
     }
 
-    /* 8 DISTINCT WARRIOR COMBAT TAP MOTIONS */
-    /* 0: SHIELD BASH */
+    /* 8 WARRIOR MOTIONS */
     @keyframes warrior-bash { 
       0% { transform: scale(1) translateY(0); } 
       25% { transform: scale(0.9) translateY(4px); } 
@@ -321,7 +319,6 @@
     }
     .anim-warrior-0 { animation: warrior-bash 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) !important; }
 
-    /* 1: KATANA SLASH STRIKE */
     @keyframes warrior-slash { 
       0% { transform: rotate(0deg) scale(1); } 
       30% { transform: rotate(-25deg) scale(1.15) translateX(-6px); } 
@@ -331,7 +328,6 @@
     }
     .anim-warrior-1 { animation: warrior-slash 0.44s ease-out !important; }
 
-    /* 2: HIGH-JUMP SMITE */
     @keyframes warrior-smite { 
       0% { transform: scale(1) translateY(0); } 
       30% { transform: scale(0.85, 1.25) translateY(-18px); } 
@@ -341,15 +337,13 @@
     }
     .anim-warrior-2 { animation: warrior-smite 0.46s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important; }
 
-    /* 3: BERZERKER SPIN */
     @keyframes warrior-spin { 
       0% { transform: rotate(0deg) scale(1); } 
-      50% { transform: rotate(180deg) scale(1.3) filter(brightness(1.6)); } 
+      50% { transform: rotate(180deg) scale(1.3); filter: brightness(1.6); } 
       100% { transform: rotate(360deg) scale(1); } 
     }
     .anim-warrior-3 { animation: warrior-spin 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
 
-    /* 4: EARTHQUAKE SLAM */
     @keyframes warrior-quake { 
       0%, 100% { transform: translate(0, 0); } 
       20% { transform: translate(-8px, 6px) scale(1.15); filter: contrast(1.4); } 
@@ -359,7 +353,6 @@
     }
     .anim-warrior-4 { animation: warrior-quake 0.42s ease-in-out !important; }
 
-    /* 5: DASH THRUST */
     @keyframes warrior-thrust { 
       0% { transform: translateX(0) scale(1); } 
       30% { transform: translateX(-14px) scale(0.9) skewX(-12deg); } 
@@ -369,7 +362,6 @@
     }
     .anim-warrior-5 { animation: warrior-thrust 0.42s ease-out !important; }
 
-    /* 6: KINETIC SOLAR FLARE */
     @keyframes warrior-flare { 
       0% { transform: scale(1); filter: brightness(1); } 
       40% { transform: scale(1.35); filter: brightness(2) drop-shadow(0 0 25px #ffd700); } 
@@ -378,7 +370,6 @@
     }
     .anim-warrior-6 { animation: warrior-flare 0.44s ease-out !important; }
 
-    /* 7: SHADOW TELEPORT */
     @keyframes warrior-shadow { 
       0% { opacity: 1; transform: scale(1); } 
       35% { opacity: 0.15; transform: scale(0.65) translateY(-8px); filter: blur(4px); } 
@@ -453,7 +444,6 @@
       box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
     }
 
-    /* LEFT HALF: CRIMSON EVIL IMPOSTOR */
     .crest-half-impostor {
       flex: 1;
       background: linear-gradient(135deg, rgba(138, 21, 21, 0.92) 0%, rgba(50, 5, 10, 0.96) 100%);
@@ -484,7 +474,6 @@
       text-shadow: 0 0 6px #800000;
     }
 
-    /* RIGHT HALF: GILDED DETECTIVE */
     .crest-half-detective {
       flex: 1;
       background: linear-gradient(135deg, rgba(15, 30, 60, 0.92) 0%, rgba(5, 12, 25, 0.96) 100%);
@@ -814,7 +803,6 @@
       </div>
 
       <div class="role-card-wrapper" id="roleCardWrapper">
-        <!-- ROYAL FROST CARD COVER -->
         <div id="iceCrustOverlay" class="royal-frost-card" onclick="shatterIceCard()">
           <div class="card-crest-split-body">
             <div class="crest-half-impostor">
@@ -935,7 +923,6 @@
       'https://i.postimg.cc/Y4019wNc/1789935612680.png'
     ];
 
-    // Preload avatars into cache immediately
     const preloadedImages = [];
     AVATAR_LIST.forEach(src => {
       const img = new Image();
@@ -950,9 +937,6 @@
     let selectedAvatarIndex = 0;
     const avatarGridEl = document.getElementById('avatarGrid');
 
-    // -------------------------------------------------------------
-    // RENDER AVATARS WITH ZERO-LATENCY WARRIOR MOTIONS & FIRE RING
-    // -------------------------------------------------------------
     AVATAR_LIST.forEach((url, idx) => {
       const card = document.createElement('div');
       card.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
@@ -964,7 +948,6 @@
 
       card.onclick = () => {
         playTouchSFX();
-        // Remove blaze & warrior class from all cards
         document.querySelectorAll('.avatar-card').forEach(c => {
           c.classList.remove('selected');
         });
@@ -972,11 +955,9 @@
           im.className = '';
         });
 
-        // Trigger fire blaze ring on card and warrior animation on image at exact same millisecond
         card.classList.add('selected');
         selectedAvatarIndex = idx;
 
-        // Force browser layout repaint for instant motion replay
         void img.offsetWidth;
         img.classList.add(`anim-warrior-${idx}`);
 
@@ -1543,20 +1524,15 @@
       showScreen('screen-lobby');
     });
 
-    // -------------------------------------------------------------
-    // INSTANT SYNCHRONIZED OPENING CEREMONY ACROSS ALL DEVICES
-    // -------------------------------------------------------------
     socket.on('match_started_sync', () => {
       closePartyModal();
       document.body.classList.remove('impostor-win-atmosphere');
       document.getElementById('partyModal').classList.remove('impostor-win-modal');
       document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
 
-      // Reset the Royal Frost Card to frosted state smoothly
       const ice = document.getElementById('iceCrustOverlay');
       if (ice) ice.classList.remove('shattered');
 
-      // Reset voting forms for the new match
       const castBtn = document.getElementById('castVoteBtn');
       if (castBtn) {
         castBtn.disabled = false;
@@ -1692,8 +1668,9 @@
           cluesTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888;">No clues recorded.</td></tr>`;
         }
 
+        // GUARANTEED ALL PLAYERS LISTED (REMOVED BACKGROUND DISCONNECT FILTER)
         const select = document.getElementById('suspectSelect');
-        select.innerHTML = room.players.filter(p => p.id !== playerId && p.connected).map(p => 
+        select.innerHTML = room.players.filter(p => p.id !== playerId).map(p => 
           `<option value="${p.id}">${p.name}</option>`
         ).join('');
         document.getElementById('voteStatus').textContent = `Votes recorded: ${room.votesCount || 0} / ${room.totalVoters}`;
