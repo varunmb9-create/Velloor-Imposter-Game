@@ -16,7 +16,7 @@ const io = new Server(server, {
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -------------------------------------------------------------
-// LEADERBOARD (AVATAR, MATCHES, LAST MATCH PTS, GRAND TOTAL)
+// LEADERBOARD PERSISTENCE
 // -------------------------------------------------------------
 const LEADERBOARD_FILE = path.join(__dirname, 'leaderboard.json');
 
@@ -271,7 +271,6 @@ io.on('connection', (socket) => {
     const player = room.players.find(p => p.id === playerId);
     if (!player) return socket.emit('session_resume_failed');
 
-    // Clear any disconnect cleanup timer
     if (player.disconnectTimeout) {
       clearTimeout(player.disconnectTimeout);
       player.disconnectTimeout = null;
@@ -382,8 +381,9 @@ io.on('connection', (socket) => {
       p.role = (p.id === chosenImpostor.id) ? 'IMPOSTOR' : 'CITIZEN';
     });
 
+    // 1. INSTANT ATOMIC TRIGGER ACROSS ALL PHONES
     room.state = 'OPENING_RITUAL';
-    io.to(room.roomId).emit('trigger_opening_ritual');
+    io.to(room.roomId).emit('match_started_sync');
 
     if (room.openingTimer) clearTimeout(room.openingTimer);
     room.openingTimer = setTimeout(() => {
@@ -509,7 +509,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // 30-SECOND DISCONNECT GRACE PERIOD PREVENTS FLAPPING HOSTS
   socket.on('disconnect', () => {
     const room = rooms[socket.roomId];
     if (!room) return;
@@ -520,7 +519,6 @@ io.on('connection', (socket) => {
     p.connected = false;
 
     p.disconnectTimeout = setTimeout(() => {
-      // If still disconnected after 30 seconds, re-evaluate room and host
       if (!p.connected) {
         const anyConnected = room.players.some(x => x.connected);
         if (!anyConnected) {
@@ -535,7 +533,7 @@ io.on('connection', (socket) => {
           broadcastRoom(room.roomId);
         }
       }
-    }, 30000); // 30 second grace window
+    }, 30000);
 
     broadcastRoom(room.roomId);
   });
