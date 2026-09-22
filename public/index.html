@@ -251,9 +251,6 @@
 
     .hidden { display: none !important; }
 
-    /* -------------------------------------------------------------
-       AVATAR WARRIOR COMBAT ANIMATIONS + BLAZING FIRE RING
-       ------------------------------------------------------------- */
     .avatar-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -391,9 +388,6 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
-    /* -------------------------------------------------------------
-       ROYAL FROST CARD (SPLIT EVIL IMPOSTOR / ROYAL DETECTIVE CREST)
-       ------------------------------------------------------------- */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -974,12 +968,15 @@
       timeout: 20000
     });
 
-    let playerId = localStorage.getItem('velloor_player_id');
+    // -------------------------------------------------------------
+    // TAB-ISOLATED SESSION ID (FIXES 4 PLAYERS ON ONE PHONE)
+    // -------------------------------------------------------------
+    let playerId = sessionStorage.getItem('velloor_player_id');
     if (!playerId) {
       playerId = 'p_' + Math.random().toString(36).substring(2, 10);
-      localStorage.setItem('velloor_player_id', playerId);
+      sessionStorage.setItem('velloor_player_id', playerId);
     }
-    let currentRoomId = localStorage.getItem('velloor_room_id');
+    let currentRoomId = sessionStorage.getItem('velloor_room_id');
     let isHost = false;
 
     socket.on('connect', () => {
@@ -1451,7 +1448,7 @@
 
     function exitGameDirectly() {
       if (confirm('Leave this chamber and return to main screen?')) {
-        localStorage.removeItem('velloor_room_id');
+        sessionStorage.removeItem('velloor_room_id');
         currentRoomId = null;
         document.body.classList.remove('impostor-win-atmosphere');
         document.getElementById('partyModal').classList.add('hidden');
@@ -1463,12 +1460,12 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const savedName = localStorage.getItem('velloor_player_name');
+      const savedName = sessionStorage.getItem('velloor_player_name');
       if (savedName) document.getElementById('playerName').value = savedName;
     });
 
     socket.on('session_resume_failed', () => {
-      localStorage.removeItem('velloor_room_id');
+      sessionStorage.removeItem('velloor_room_id');
       currentRoomId = null;
       showScreen('screen-auth');
     });
@@ -1486,8 +1483,8 @@
       btn.disabled = true;
       btn.textContent = 'Creating Chamber...';
 
-      localStorage.removeItem('velloor_room_id');
-      localStorage.setItem('velloor_player_name', name);
+      sessionStorage.removeItem('velloor_room_id');
+      sessionStorage.setItem('velloor_player_name', name);
       socket.emit('create_room', { playerName: name, avatar: selectedAvatarIndex, playerId });
     }
 
@@ -1496,7 +1493,7 @@
       const name = document.getElementById('playerName').value.trim();
       const code = document.getElementById('roomCodeInput').value.trim();
       if (!name || !code) return alert('Enter both name and 4-letter code');
-      localStorage.setItem('velloor_player_name', name);
+      sessionStorage.setItem('velloor_player_name', name);
       socket.emit('join_room', { roomId: code, playerName: name, avatar: selectedAvatarIndex, playerId });
     }
 
@@ -1512,14 +1509,14 @@
       const btn = document.getElementById('createRoomBtn');
       if (btn) { btn.disabled = false; btn.textContent = 'Create New Game'; }
       currentRoomId = data.roomId;
-      localStorage.setItem('velloor_room_id', currentRoomId);
+      sessionStorage.setItem('velloor_room_id', currentRoomId);
       document.getElementById('lobbyRoomCode').textContent = data.roomId;
       showScreen('screen-lobby');
     });
 
     socket.on('room_joined', (data) => {
       currentRoomId = data.roomId;
-      localStorage.setItem('velloor_room_id', currentRoomId);
+      sessionStorage.setItem('velloor_room_id', currentRoomId);
       document.getElementById('lobbyRoomCode').textContent = data.roomId;
       showScreen('screen-lobby');
     });
@@ -1588,7 +1585,7 @@
     function syncGameView(room) {
       if (!room) return;
       currentRoomId = room.roomId;
-      localStorage.setItem('velloor_room_id', currentRoomId);
+      sessionStorage.setItem('velloor_room_id', currentRoomId);
       isHost = (room.hostId === playerId);
 
       if (room.state === 'LOBBY') {
@@ -1668,7 +1665,6 @@
           cluesTableBody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#888;">No clues recorded.</td></tr>`;
         }
 
-        // GUARANTEED ALL PLAYERS LISTED (REMOVED BACKGROUND DISCONNECT FILTER)
         const select = document.getElementById('suspectSelect');
         select.innerHTML = room.players.filter(p => p.id !== playerId).map(p => 
           `<option value="${p.id}">${p.name}</option>`
