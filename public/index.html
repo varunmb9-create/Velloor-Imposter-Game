@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTOR IN VELLOOR</title>
 
-  <!-- FAST FONT LOADING -->
+  <!-- LUXURY GAME CALLIGRAPHY FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
 
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
@@ -56,7 +56,6 @@
       background: radial-gradient(circle at center, #2d0006 0%, #080002 100%) !important;
     }
 
-    /* ALL DECORATIVE CANVAS LAYERS HAVE POINTER-EVENTS NONE */
     #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #flameGlow {
       position: fixed;
       top: 0;
@@ -252,43 +251,141 @@
 
     .hidden { display: none !important; }
 
+    /* -------------------------------------------------------------
+       AVATAR WARRIOR COMBAT ANIMATIONS + BLAZING FIRE RING
+       ------------------------------------------------------------- */
     .avatar-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      gap: 10px;
       margin-top: 8px;
       margin-bottom: 12px;
     }
     .avatar-card {
       position: relative;
-      border-radius: 10px;
-      border: 2px solid transparent;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
       padding: 4px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
       cursor: pointer;
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
       overflow: visible;
       pointer-events: auto;
-      min-height: 60px;
+      min-height: 64px;
+      transition: transform 0.1s ease, border-color 0.2s ease;
     }
     .avatar-card img {
-      width: 52px;
-      height: 52px;
-      border-radius: 8px;
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
       object-fit: cover;
       pointer-events: none;
       display: block;
-      transition: transform 0.15s ease;
-      background: #2a1f3d; /* Instant placeholder so it never looks blank */
+      background: #2a1f3d;
+      position: relative;
+      z-index: 2;
     }
+
+    /* BLAZING FIRE RING AROUND SELECTED AVATAR */
     .avatar-card.selected {
-      border-color: #ffd700;
-      box-shadow: 0 0 14px rgba(255, 215, 0, 0.65);
+      border-color: #ffaa00;
+      box-shadow: 0 0 16px rgba(255, 170, 0, 0.8), 0 0 28px rgba(255, 68, 0, 0.6);
+      animation: warriorFlameBlaze 1.4s infinite alternate ease-in-out;
     }
-    .avatar-card.selected img { transform: scale(1.06); }
+
+    @keyframes warriorFlameBlaze {
+      0% {
+        box-shadow: 0 0 10px #ff3300, 0 0 20px #ff8800, inset 0 0 10px #ffcc00;
+        border-color: #ffd700;
+      }
+      50% {
+        box-shadow: 0 0 22px #ff2200, 0 0 35px #ff6600, 0 0 45px #ffbb00;
+        border-color: #ffffff;
+      }
+      100% {
+        box-shadow: 0 0 12px #ff4400, 0 0 24px #ffa500, inset 0 0 12px #ffea00;
+        border-color: #ff9900;
+      }
+    }
+
+    /* 8 DISTINCT WARRIOR COMBAT TAP MOTIONS */
+    /* 0: SHIELD BASH */
+    @keyframes warrior-bash { 
+      0% { transform: scale(1) translateY(0); } 
+      25% { transform: scale(0.9) translateY(4px); } 
+      50% { transform: scale(1.22) translateY(-14px); filter: brightness(1.5) drop-shadow(0 0 15px #ffd700); } 
+      75% { transform: scale(1.05) translateY(-2px); } 
+      100% { transform: scale(1) translateY(0); } 
+    }
+    .anim-warrior-0 { animation: warrior-bash 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) !important; }
+
+    /* 1: KATANA SLASH STRIKE */
+    @keyframes warrior-slash { 
+      0% { transform: rotate(0deg) scale(1); } 
+      30% { transform: rotate(-25deg) scale(1.15) translateX(-6px); } 
+      55% { transform: rotate(28deg) scale(1.25) translateX(8px); filter: brightness(1.7); } 
+      80% { transform: rotate(-5deg) scale(1.05); } 
+      100% { transform: rotate(0deg) scale(1); } 
+    }
+    .anim-warrior-1 { animation: warrior-slash 0.44s ease-out !important; }
+
+    /* 2: HIGH-JUMP SMITE */
+    @keyframes warrior-smite { 
+      0% { transform: scale(1) translateY(0); } 
+      30% { transform: scale(0.85, 1.25) translateY(-18px); } 
+      65% { transform: scale(1.25, 0.8) translateY(6px); filter: drop-shadow(0 0 18px #ff3300); } 
+      85% { transform: scale(0.95, 1.05) translateY(-2px); } 
+      100% { transform: scale(1) translateY(0); } 
+    }
+    .anim-warrior-2 { animation: warrior-smite 0.46s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important; }
+
+    /* 3: BERZERKER SPIN */
+    @keyframes warrior-spin { 
+      0% { transform: rotate(0deg) scale(1); } 
+      50% { transform: rotate(180deg) scale(1.3) filter(brightness(1.6)); } 
+      100% { transform: rotate(360deg) scale(1); } 
+    }
+    .anim-warrior-3 { animation: warrior-spin 0.48s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+
+    /* 4: EARTHQUAKE SLAM */
+    @keyframes warrior-quake { 
+      0%, 100% { transform: translate(0, 0); } 
+      20% { transform: translate(-8px, 6px) scale(1.15); filter: contrast(1.4); } 
+      40% { transform: translate(8px, -6px) scale(1.15); } 
+      60% { transform: translate(-6px, -4px); } 
+      80% { transform: translate(4px, 4px); } 
+    }
+    .anim-warrior-4 { animation: warrior-quake 0.42s ease-in-out !important; }
+
+    /* 5: DASH THRUST */
+    @keyframes warrior-thrust { 
+      0% { transform: translateX(0) scale(1); } 
+      30% { transform: translateX(-14px) scale(0.9) skewX(-12deg); } 
+      60% { transform: translateX(16px) scale(1.2) skewX(8deg); filter: brightness(1.6); } 
+      85% { transform: translateX(-3px); } 
+      100% { transform: translateX(0) scale(1); } 
+    }
+    .anim-warrior-5 { animation: warrior-thrust 0.42s ease-out !important; }
+
+    /* 6: KINETIC SOLAR FLARE */
+    @keyframes warrior-flare { 
+      0% { transform: scale(1); filter: brightness(1); } 
+      40% { transform: scale(1.35); filter: brightness(2) drop-shadow(0 0 25px #ffd700); } 
+      75% { transform: scale(0.95); filter: brightness(1.2); } 
+      100% { transform: scale(1); filter: brightness(1); } 
+    }
+    .anim-warrior-6 { animation: warrior-flare 0.44s ease-out !important; }
+
+    /* 7: SHADOW TELEPORT */
+    @keyframes warrior-shadow { 
+      0% { opacity: 1; transform: scale(1); } 
+      35% { opacity: 0.15; transform: scale(0.65) translateY(-8px); filter: blur(4px); } 
+      70% { opacity: 1; transform: scale(1.25) translateY(0); filter: drop-shadow(0 0 20px #00e5ff); } 
+      100% { opacity: 1; transform: scale(1); filter: none; } 
+    }
+    .anim-warrior-7 { animation: warrior-shadow 0.45s ease-in-out !important; }
 
     .badge-bar {
       display: flex;
@@ -303,64 +400,157 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
+    /* -------------------------------------------------------------
+       ROYAL FROST CARD (SPLIT EVIL IMPOSTOR / ROYAL DETECTIVE CREST)
+       ------------------------------------------------------------- */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
+      border-radius: 14px;
       overflow: hidden;
-      border-radius: 12px;
+      min-height: 230px;
     }
-    .ice-overlay {
+
+    .royal-frost-card {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, rgba(160, 220, 255, 0.88) 0%, rgba(200, 240, 255, 0.72) 40%, rgba(130, 200, 245, 0.92) 100%);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      border-radius: 14px;
       border: 2px solid #b3e5fc;
-      border-radius: 12px;
-      box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.7), 0 0 20px rgba(129, 212, 250, 0.55);
+      background: radial-gradient(circle at center, rgba(160, 220, 255, 0.95) 0%, rgba(100, 180, 240, 0.9) 100%);
+      box-shadow: inset 0 0 35px rgba(255, 255, 255, 0.8), 0 8px 32px rgba(0, 180, 255, 0.45);
       z-index: 15;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      overflow: hidden;
+      padding: 12px;
+      transition: transform 0.3s ease, opacity 0.4s ease;
+      pointer-events: auto;
+    }
+    .royal-frost-card:active { transform: scale(0.98); }
+
+    .royal-frost-card.shattered {
+      animation: royalCardShatter 0.45s forwards cubic-bezier(0.2, 0.8, 0.3, 1) !important;
+      pointer-events: none !important;
+    }
+
+    @keyframes royalCardShatter {
+      0% { transform: scale(1); opacity: 1; filter: blur(0px); }
+      40% { transform: scale(1.08) rotate(1.5deg); opacity: 0.85; filter: contrast(1.5) brightness(1.3); }
+      100% { transform: scale(1.22) rotate(-2deg); opacity: 0; filter: blur(8px); }
+    }
+
+    .card-crest-split-body {
+      display: flex;
+      height: 140px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* LEFT HALF: CRIMSON EVIL IMPOSTOR */
+    .crest-half-impostor {
+      flex: 1;
+      background: linear-gradient(135deg, rgba(138, 21, 21, 0.92) 0%, rgba(50, 5, 10, 0.96) 100%);
+      border-right: 2px dashed rgba(255, 215, 0, 0.5);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      cursor: pointer;
-      padding: 16px;
       text-align: center;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      pointer-events: auto;
+      padding: 6px;
     }
-    .ice-overlay:active { transform: scale(0.98); }
-    .ice-overlay.shattered {
-      opacity: 0 !important;
-      transform: scale(1.15) !important;
-      pointer-events: none !important;
+    .crest-icon-evil {
+      font-size: 2.2rem;
+      filter: drop-shadow(0 0 8px #ff1a1a);
+      animation: evilFlicker 2s infinite alternate;
     }
-    .ice-icon { font-size: 2.8rem; margin-bottom: 8px; filter: drop-shadow(0 0 10px #00e5ff); }
-    .ice-title { font-weight: 900; color: #002b4d; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
-    .ice-sub { font-weight: 700; color: #023859; font-size: 0.78rem; margin-top: 4px; }
+    @keyframes evilFlicker {
+      0% { transform: scale(1); filter: drop-shadow(0 0 6px #ff0000); }
+      100% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ff5555); }
+    }
+    .crest-title-evil {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      color: #ff6666;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      text-shadow: 0 0 6px #800000;
+    }
+
+    /* RIGHT HALF: GILDED DETECTIVE */
+    .crest-half-detective {
+      flex: 1;
+      background: linear-gradient(135deg, rgba(15, 30, 60, 0.92) 0%, rgba(5, 12, 25, 0.96) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 6px;
+    }
+    .crest-icon-detective {
+      font-size: 2.2rem;
+      filter: drop-shadow(0 0 8px #ffd700);
+      animation: detGlow 2s infinite alternate;
+    }
+    @keyframes detGlow {
+      0% { transform: scale(1); filter: drop-shadow(0 0 6px #ffd700); }
+      100% { transform: scale(1.08); filter: drop-shadow(0 0 14px #ffffff); }
+    }
+    .crest-title-detective {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      color: #f7d479;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      text-shadow: 0 0 6px #946d00;
+    }
+
+    .card-tap-reveal-prompt {
+      text-align: center;
+      padding: 6px 0;
+      font-family: 'Cinzel', serif;
+      font-weight: 800;
+      font-size: 0.84rem;
+      color: #002244;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.45);
+      border-radius: 8px;
+    }
 
     .role-box {
       border: 1px solid var(--gold-border);
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 14px;
+      padding: 16px;
       text-align: center;
-      background: rgba(0, 0, 0, 0.45);
+      background: rgba(0, 0, 0, 0.55);
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
     .role-box img {
       width: 100%;
-      height: 180px;
+      max-height: 160px;
       object-fit: cover;
       border-radius: 8px;
       border: 1px solid rgba(255, 215, 0, 0.3);
-      margin-top: 10px;
+      margin-top: 8px;
     }
     .impostor-box {
       border-color: #ff3333;
-      background: rgba(50, 10, 10, 0.5);
-      box-shadow: 0 0 20px rgba(255, 30, 30, 0.35);
+      background: rgba(50, 10, 10, 0.65);
+      box-shadow: 0 0 25px rgba(255, 30, 30, 0.4);
     }
 
     .clue-stream {
@@ -616,7 +806,7 @@
       <button class="danger-btn" onclick="exitGameDirectly()">🚪 Exit Chamber</button>
     </div>
 
-    <!-- 3. GAMEPLAY SCREEN -->
+    <!-- 3. GAMEPLAY SCREEN (WITH ROYAL FROST SPLIT CARD) -->
     <div id="screen-game" class="hidden">
       <div class="badge-bar">
         <span id="roundBadge" class="gold-text">ROUND 1 / 3</span>
@@ -624,10 +814,19 @@
       </div>
 
       <div class="role-card-wrapper" id="roleCardWrapper">
-        <div id="iceCrustOverlay" class="ice-overlay" onclick="shatterIceCard()">
-          <div class="ice-icon">🧊</div>
-          <div class="ice-title">FROZEN SECRET TOPIC</div>
-          <div class="ice-sub">Tap to shatter ice & inspect your role</div>
+        <!-- ROYAL FROST CARD COVER -->
+        <div id="iceCrustOverlay" class="royal-frost-card" onclick="shatterIceCard()">
+          <div class="card-crest-split-body">
+            <div class="crest-half-impostor">
+              <div class="crest-icon-evil">🗡️</div>
+              <div class="crest-title-evil">IMPOSTOR</div>
+            </div>
+            <div class="crest-half-detective">
+              <div class="crest-icon-detective">🔍</div>
+              <div class="crest-title-detective">DETECTIVES</div>
+            </div>
+          </div>
+          <div class="card-tap-reveal-prompt">❄️ Tap To Shatter Royal Frost ❄️</div>
         </div>
 
         <div id="citizenRoleCard" class="role-box hidden">
@@ -725,9 +924,6 @@
       });
     }
 
-    // -------------------------------------------------------------
-    // INSTANT AVATAR PRELOADER (ELIMINATES BLANK/SLOW AVATARS)
-    // -------------------------------------------------------------
     const AVATAR_LIST = [
       'https://i.postimg.cc/9R4txjzB/1789934119807.png',
       'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
@@ -739,7 +935,7 @@
       'https://i.postimg.cc/Y4019wNc/1789935612680.png'
     ];
 
-    // Preload all avatars into cache immediately
+    // Preload avatars into cache immediately
     const preloadedImages = [];
     AVATAR_LIST.forEach(src => {
       const img = new Image();
@@ -753,6 +949,10 @@
 
     let selectedAvatarIndex = 0;
     const avatarGridEl = document.getElementById('avatarGrid');
+
+    // -------------------------------------------------------------
+    // RENDER AVATARS WITH ZERO-LATENCY WARRIOR MOTIONS & FIRE RING
+    // -------------------------------------------------------------
     AVATAR_LIST.forEach((url, idx) => {
       const card = document.createElement('div');
       card.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
@@ -764,21 +964,31 @@
 
       card.onclick = () => {
         playTouchSFX();
-        document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+        // Remove blaze & warrior class from all cards
+        document.querySelectorAll('.avatar-card').forEach(c => {
+          c.classList.remove('selected');
+        });
+        document.querySelectorAll('.avatar-card img').forEach(im => {
+          im.className = '';
+        });
+
+        // Trigger fire blaze ring on card and warrior animation on image at exact same millisecond
         card.classList.add('selected');
         selectedAvatarIndex = idx;
+
+        // Force browser layout repaint for instant motion replay
+        void img.offsetWidth;
+        img.classList.add(`anim-warrior-${idx}`);
+
         tryPlayBGMOnFirstTouch();
       };
 
       avatarGridEl.appendChild(card);
     });
 
-    // -------------------------------------------------------------
-    // SOCKET INITIALIZATION (WITH AUTO RECONNECT & HEARTBEAT)
-    // -------------------------------------------------------------
     const socket = io({
       reconnection: true,
-      reconnectionAttempts: 25,
+      reconnectionAttempts: 30,
       reconnectionDelay: 1000,
       timeout: 20000
     });
@@ -797,9 +1007,6 @@
       }
     });
 
-    // -------------------------------------------------------------
-    // PARTICLES CANVAS
-    // -------------------------------------------------------------
     const emberCanvas = document.getElementById('emberCanvas');
     const ectx = emberCanvas.getContext('2d');
     let embers = [];
@@ -932,9 +1139,6 @@
       renderFrame();
     }
 
-    // -------------------------------------------------------------
-    // AUDIO ENGINE
-    // -------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -1025,6 +1229,19 @@
         gain.connect(ctx.destination);
         noise.start(now);
         noise.stop(now + 0.45);
+
+        const chime = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(1900, now);
+        chime.frequency.exponentialRampToValueAtTime(750, now + 0.35);
+        chimeGain.gain.setValueAtTime(0.3, now);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        chime.connect(chimeGain);
+        chimeGain.connect(ctx.destination);
+        chime.start(now);
+        chime.stop(now + 0.35);
       } catch (e) {}
     }
 
@@ -1061,6 +1278,20 @@
         gain.connect(ctx.destination);
         noise.start(now);
         noise.stop(now + 2.8);
+
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(130, now);
+        osc.frequency.exponentialRampToValueAtTime(28, now + 2.2);
+
+        oscGain.gain.setValueAtTime(0.4, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 2.2);
       } catch (e) {}
     }
 
@@ -1312,15 +1543,20 @@
       showScreen('screen-lobby');
     });
 
-    socket.on('trigger_opening_ritual', () => {
+    // -------------------------------------------------------------
+    // INSTANT SYNCHRONIZED OPENING CEREMONY ACROSS ALL DEVICES
+    // -------------------------------------------------------------
+    socket.on('match_started_sync', () => {
       closePartyModal();
       document.body.classList.remove('impostor-win-atmosphere');
       document.getElementById('partyModal').classList.remove('impostor-win-modal');
       document.getElementById('mainGameContainer').classList.remove('impostor-win-box');
 
+      // Reset the Royal Frost Card to frosted state smoothly
       const ice = document.getElementById('iceCrustOverlay');
       if (ice) ice.classList.remove('shattered');
 
+      // Reset voting forms for the new match
       const castBtn = document.getElementById('castVoteBtn');
       if (castBtn) {
         castBtn.disabled = false;
@@ -1332,9 +1568,6 @@
       runLightningStrikes();
     });
 
-    // -------------------------------------------------------------
-    // COUNTDOWN & AUTO-REVEAL GUARANTEE
-    // -------------------------------------------------------------
     let clientTimer = null;
     socket.on('start_reveal_countdown', (data) => {
       showScreen('screen-countdown');
