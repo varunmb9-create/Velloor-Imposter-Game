@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTOR IN VELLOOR</title>
 
-  <!-- IN-GAME CALLIGRAPHIC FONT -->
+  <!-- FAST FONT LOADING -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&display=swap" rel="stylesheet">
@@ -56,7 +56,7 @@
       background: radial-gradient(circle at center, #2d0006 0%, #080002 100%) !important;
     }
 
-    /* ALL DECORATIVE BACKGROUNDS MUST HAVE POINTER-EVENTS NONE */
+    /* ALL DECORATIVE CANVAS LAYERS HAVE POINTER-EVENTS NONE */
     #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #flameGlow {
       position: fixed;
       top: 0;
@@ -89,7 +89,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      pointer-events: none; /* Never blocks touches */
+      pointer-events: none;
     }
     .opening-calligraphy-wrapper {
       position: relative;
@@ -264,7 +264,7 @@
       border-radius: 10px;
       border: 2px solid transparent;
       padding: 4px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.08);
       cursor: pointer;
       display: flex;
       justify-content: center;
@@ -272,6 +272,7 @@
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
       overflow: visible;
       pointer-events: auto;
+      min-height: 60px;
     }
     .avatar-card img {
       width: 52px;
@@ -281,6 +282,7 @@
       pointer-events: none;
       display: block;
       transition: transform 0.15s ease;
+      background: #2a1f3d; /* Instant placeholder so it never looks blank */
     }
     .avatar-card.selected {
       border-color: #ffd700;
@@ -719,12 +721,84 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW registration error:', err));
+        navigator.serviceWorker.register('/sw.js').catch(err => {});
       });
     }
 
     // -------------------------------------------------------------
-    // PARTICLES ENGINE
+    // INSTANT AVATAR PRELOADER (ELIMINATES BLANK/SLOW AVATARS)
+    // -------------------------------------------------------------
+    const AVATAR_LIST = [
+      'https://i.postimg.cc/9R4txjzB/1789934119807.png',
+      'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
+      'https://i.postimg.cc/jW2z5rH3/1789934440272.png',
+      'https://i.postimg.cc/8cF357br/1789949385902.png',
+      'https://i.postimg.cc/hJv9jqLC/1789934938220.png',
+      'https://i.postimg.cc/xk8KCSv6/1789935235791.png',
+      'https://i.postimg.cc/bw05sc1B/1789949439051.png',
+      'https://i.postimg.cc/Y4019wNc/1789935612680.png'
+    ];
+
+    // Preload all avatars into cache immediately
+    const preloadedImages = [];
+    AVATAR_LIST.forEach(src => {
+      const img = new Image();
+      img.src = src;
+      preloadedImages.push(img);
+    });
+
+    const DRAGON_IMG_SRC = 'https://i.postimg.cc/xq96mgrm/1000129477.png';
+    const dragonImage = new Image();
+    dragonImage.src = DRAGON_IMG_SRC;
+
+    let selectedAvatarIndex = 0;
+    const avatarGridEl = document.getElementById('avatarGrid');
+    AVATAR_LIST.forEach((url, idx) => {
+      const card = document.createElement('div');
+      card.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
+      card.dataset.index = idx;
+
+      const img = document.createElement('img');
+      img.src = url;
+      card.appendChild(img);
+
+      card.onclick = () => {
+        playTouchSFX();
+        document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedAvatarIndex = idx;
+        tryPlayBGMOnFirstTouch();
+      };
+
+      avatarGridEl.appendChild(card);
+    });
+
+    // -------------------------------------------------------------
+    // SOCKET INITIALIZATION (WITH AUTO RECONNECT & HEARTBEAT)
+    // -------------------------------------------------------------
+    const socket = io({
+      reconnection: true,
+      reconnectionAttempts: 25,
+      reconnectionDelay: 1000,
+      timeout: 20000
+    });
+
+    let playerId = localStorage.getItem('velloor_player_id');
+    if (!playerId) {
+      playerId = 'p_' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('velloor_player_id', playerId);
+    }
+    let currentRoomId = localStorage.getItem('velloor_room_id');
+    let isHost = false;
+
+    socket.on('connect', () => {
+      if (currentRoomId && playerId) {
+        socket.emit('resume_session', { roomId: currentRoomId, playerId });
+      }
+    });
+
+    // -------------------------------------------------------------
+    // PARTICLES CANVAS
     // -------------------------------------------------------------
     const emberCanvas = document.getElementById('emberCanvas');
     const ectx = emberCanvas.getContext('2d');
@@ -858,46 +932,9 @@
       renderFrame();
     }
 
-    const socket = io();
-
-    const DRAGON_IMG_SRC = 'https://i.postimg.cc/xq96mgrm/1000129477.png';
-    const dragonImage = new Image();
-    dragonImage.src = DRAGON_IMG_SRC;
-
-    const AVATAR_LIST = [
-      'https://i.postimg.cc/9R4txjzB/1789934119807.png',
-      'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
-      'https://i.postimg.cc/jW2z5rH3/1789934440272.png',
-      'https://i.postimg.cc/8cF357br/1789949385902.png',
-      'https://i.postimg.cc/hJv9jqLC/1789934938220.png',
-      'https://i.postimg.cc/xk8KCSv6/1789935235791.png',
-      'https://i.postimg.cc/bw05sc1B/1789949439051.png',
-      'https://i.postimg.cc/Y4019wNc/1789935612680.png'
-    ];
-
-    let selectedAvatarIndex = 0;
-
-    const avatarGridEl = document.getElementById('avatarGrid');
-    AVATAR_LIST.forEach((url, idx) => {
-      const card = document.createElement('div');
-      card.className = `avatar-card ${idx === 0 ? 'selected' : ''}`;
-      card.dataset.index = idx;
-
-      const img = document.createElement('img');
-      img.src = url;
-      card.appendChild(img);
-
-      card.onclick = () => {
-        playTouchSFX();
-        document.querySelectorAll('.avatar-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        selectedAvatarIndex = idx;
-        tryPlayBGMOnFirstTouch();
-      };
-
-      avatarGridEl.appendChild(card);
-    });
-
+    // -------------------------------------------------------------
+    // AUDIO ENGINE
+    // -------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -988,19 +1025,6 @@
         gain.connect(ctx.destination);
         noise.start(now);
         noise.stop(now + 0.45);
-
-        const chime = ctx.createOscillator();
-        const chimeGain = ctx.createGain();
-        chime.type = 'sine';
-        chime.frequency.setValueAtTime(1900, now);
-        chime.frequency.exponentialRampToValueAtTime(750, now + 0.35);
-        chimeGain.gain.setValueAtTime(0.3, now);
-        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-        chime.connect(chimeGain);
-        chimeGain.connect(ctx.destination);
-        chime.start(now);
-        chime.stop(now + 0.35);
       } catch (e) {}
     }
 
@@ -1037,20 +1061,6 @@
         gain.connect(ctx.destination);
         noise.start(now);
         noise.stop(now + 2.8);
-
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(130, now);
-        osc.frequency.exponentialRampToValueAtTime(28, now + 2.2);
-
-        oscGain.gain.setValueAtTime(0.4, now);
-        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
-
-        osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 2.2);
       } catch (e) {}
     }
 
@@ -1203,7 +1213,7 @@
           <td>
             <div class="lb-player-cell">
               <span class="gold-text" style="font-size:0.75rem;">#${idx + 1}</span>
-              <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ffd700;" />
+              <img src="${AVATAR_LIST[row.avatarIndex]}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ffd700; background:#2a1f3d;" />
               <span style="font-weight:700;">Avatar ${row.avatarIndex + 1}</span>
             </div>
           </td>
@@ -1213,14 +1223,6 @@
         </tr>
       `).join('');
     });
-
-    let playerId = localStorage.getItem('velloor_player_id');
-    if (!playerId) {
-      playerId = 'p_' + Math.random().toString(36).substring(2, 10);
-      localStorage.setItem('velloor_player_id', playerId);
-    }
-    let currentRoomId = localStorage.getItem('velloor_room_id');
-    let isHost = false;
 
     function showScreen(id) {
       ['screen-auth', 'screen-lobby', 'screen-game', 'screen-vote', 'screen-countdown', 'screen-results'].forEach(s => {
@@ -1251,10 +1253,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       const savedName = localStorage.getItem('velloor_player_name');
       if (savedName) document.getElementById('playerName').value = savedName;
-
-      if (currentRoomId) {
-        socket.emit('resume_session', { roomId: currentRoomId, playerId });
-      }
     });
 
     socket.on('session_resume_failed', () => {
@@ -1323,7 +1321,6 @@
       const ice = document.getElementById('iceCrustOverlay');
       if (ice) ice.classList.remove('shattered');
 
-      // Reset voting buttons and form
       const castBtn = document.getElementById('castVoteBtn');
       if (castBtn) {
         castBtn.disabled = false;
@@ -1336,7 +1333,7 @@
     });
 
     // -------------------------------------------------------------
-    // COUNTDOWN WITH ANTI-FREEZE & AUTO-REVEAL GUARANTEE
+    // COUNTDOWN & AUTO-REVEAL GUARANTEE
     // -------------------------------------------------------------
     let clientTimer = null;
     socket.on('start_reveal_countdown', (data) => {
@@ -1355,13 +1352,11 @@
           setTimeout(() => clock.style.transform = 'scale(1)', 150);
         }
         
-        // Anti-freeze: Never freeze at 0. If server is late, demand instant reveal
         if (currentVal <= 0) {
           clearInterval(clientTimer);
           clientTimer = null;
           clock.textContent = '0';
           setTimeout(() => {
-            // Check if results screen hasn't opened yet
             if (!document.getElementById('screen-countdown').classList.contains('hidden')) {
               socket.emit('force_reveal_now');
             }
@@ -1397,8 +1392,8 @@
         document.getElementById('playerCount').textContent = room.players.length;
         document.getElementById('lobbyPlayers').innerHTML = room.players.map(p => `
           <li style="padding: 6px 0; display:flex; align-items:center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <img src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700;" />
-            <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''}</span>
+            <img src="${AVATAR_LIST[p.avatar || 0]}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; border:1px solid #ffd700; background:#2a1f3d;" />
+            <span>${p.name} ${p.isHost ? '<strong class="gold-text">(Host)</strong>' : ''} ${!p.connected ? '<em style="color:#777; font-size:0.75rem;">(reconnecting...)</em>' : ''}</span>
           </li>
         `).join('');
         if (isHost) document.getElementById('startGameBtn').classList.remove('hidden');
