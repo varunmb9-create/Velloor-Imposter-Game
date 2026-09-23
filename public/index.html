@@ -173,6 +173,19 @@
       100% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(255, 120, 0, 0.6); }
     }
 
+    #introVideoContainer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      z-index: 1;
+    }
+
     #introVideoPlayer {
       width: 100%;
       height: 100%;
@@ -878,9 +891,9 @@
     </div>
 
     <button id="skipIntroBtn" class="hidden" onclick="dismissIntro()">Skip ✕</button>
-    <video id="introVideoPlayer" class="hidden" playsinline webkit-playsinline preload="auto">
-      <source src="/intro.mp4" type="video/mp4">
-    </video>
+    <div id="introVideoContainer" class="hidden">
+      <video id="introVideoPlayer" playsinline webkit-playsinline preload="auto" src="/intro.mp4"></video>
+    </div>
   </div>
 
   <audio id="bgmAudio" loop preload="auto">
@@ -1092,27 +1105,38 @@
     }
 
     // -------------------------------------------------------------
-    // INTRO CINEMATIC ENGINE & GESTURE GATEWAY
+    // INTRO CINEMATIC ENGINE & ROBUST GESTURE GATEWAY
     // -------------------------------------------------------------
     const introOverlay = document.getElementById('introOverlay');
     const introStartScreen = document.getElementById('introStartScreen');
+    const introVideoContainer = document.getElementById('introVideoContainer');
     const introVideo = document.getElementById('introVideoPlayer');
     const skipIntroBtn = document.getElementById('skipIntroBtn');
+
+    // Explicitly configure DOM video properties for mobile webkit
+    introVideo.playsInline = true;
+    introVideo.setAttribute('playsinline', '');
+    introVideo.setAttribute('webkit-playsinline', '');
 
     function startIntroCinematic() {
       tryPlayBGMOnFirstTouch();
       playTouchSFX();
 
       introStartScreen.classList.add('hidden');
-      introVideo.classList.remove('hidden');
+      introVideoContainer.classList.remove('hidden');
       skipIntroBtn.classList.remove('hidden');
 
+      introVideo.currentTime = 0;
       introVideo.muted = false;
+
       const playPromise = introVideo.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
+        playPromise.catch(error => {
+          // If browser strictly blocks unmuted autoplay, fall back to muted video rather than failing to a black screen
           introVideo.muted = true;
-          introVideo.play().catch(() => dismissIntro());
+          introVideo.play().catch(() => {
+            dismissIntro();
+          });
         });
       }
 
@@ -1124,7 +1148,8 @@
     function dismissIntro() {
       if (introVideo) {
         introVideo.pause();
-        introVideo.src = '';
+        introVideo.removeAttribute('src');
+        introVideo.load();
       }
       introOverlay.style.opacity = '0';
       setTimeout(() => {
@@ -1147,7 +1172,6 @@
       'https://i.postimg.cc/Y4019wNc/1789935612680.png'
     ];
 
-    // Preload Avatar Icons
     const preloadedImages = [];
     AVATAR_LIST.forEach(src => {
       const img = new Image();
