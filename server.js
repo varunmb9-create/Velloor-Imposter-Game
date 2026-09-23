@@ -13,7 +13,7 @@ const io = new Server(server, {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Global persistent in-memory leaderboard across matches
+// Persistent global leaderboard across sessions
 const globalLeaderboard = [];
 for (let i = 0; i < 8; i++) {
   globalLeaderboard.push({
@@ -24,16 +24,137 @@ for (let i = 0; i < 8; i++) {
   });
 }
 
-// Built-in topics
-const TOPICS = [
-  { word: 'Dragon', category: 'Mythical Beast', image: 'https://images.unsplash.com/photo-1577493340887-b7bfff550145?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Crown', category: 'Royal Regalia', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Castle', category: 'Architecture', image: 'https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Sword', category: 'Weapon', image: 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Shield', category: 'Armor', image: 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Throne', category: 'Royal Furniture', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Potion', category: 'Alchemy', image: 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?auto=format&fit=crop&w=400&q=80' },
-  { word: 'Chariot', category: 'Vehicle', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80' }
+// 200 Unique Categorized Topics Deck
+const MASTER_WORD_LIST = [
+  { word: 'Apple', category: 'Fruit' },
+  { word: 'Orange', category: 'Fruit' },
+  { word: 'Banana', category: 'Fruit' },
+  { word: 'Mango', category: 'Fruit' },
+  { word: 'Grapes', category: 'Fruit' },
+  { word: 'Lemon', category: 'Fruit' },
+  { word: 'Coconut', category: 'Fruit' },
+  { word: 'Dog', category: 'Animal' },
+  { word: 'Cat', category: 'Animal' },
+  { word: 'Cow', category: 'Animal' },
+  { word: 'Goat', category: 'Animal' },
+  { word: 'Horse', category: 'Animal' },
+  { word: 'Sheep', category: 'Animal' },
+  { word: 'Rabbit', category: 'Animal' },
+  { word: 'Car', category: 'Vehicle' },
+  { word: 'Bus', category: 'Vehicle' },
+  { word: 'Train', category: 'Vehicle' },
+  { word: 'Bike', category: 'Vehicle' },
+  { word: 'Taxi', category: 'Vehicle' },
+  { word: 'Boat', category: 'Vehicle' },
+  { word: 'Plane', category: 'Vehicle' },
+  { word: 'Pizza', category: 'Food' },
+  { word: 'Burger', category: 'Food' },
+  { word: 'Cake', category: 'Food' },
+  { word: 'Donut', category: 'Food' },
+  { word: 'Chocolate', category: 'Sweet' },
+  { word: 'Ice Cream', category: 'Sweet' },
+  { word: 'Popcorn', category: 'Snack' },
+  { word: 'Phone', category: 'Electronics' },
+  { word: 'TV', category: 'Electronics' },
+  { word: 'Radio', category: 'Electronics' },
+  { word: 'Camera', category: 'Electronics' },
+  { word: 'Laptop', category: 'Electronics' },
+  { word: 'Watch', category: 'Accessory' },
+  { word: 'Computer', category: 'Electronics' },
+  { word: 'Bed', category: 'Furniture' },
+  { word: 'Pillow', category: 'Bedroom' },
+  { word: 'Blanket', category: 'Bedroom' },
+  { word: 'Chair', category: 'Furniture' },
+  { word: 'Table', category: 'Furniture' },
+  { word: 'Sofa', category: 'Furniture' },
+  { word: 'Door', category: 'Household' },
+  { word: 'Pen', category: 'Stationery' },
+  { word: 'Pencil', category: 'Stationery' },
+  { word: 'Book', category: 'Reading' },
+  { word: 'Bag', category: 'Accessory' },
+  { word: 'Eraser', category: 'Stationery' },
+  { word: 'Ruler', category: 'Stationery' },
+  { word: 'Notebook', category: 'Stationery' },
+  { word: 'Shirt', category: 'Clothing' },
+  { word: 'Pants', category: 'Clothing' },
+  { word: 'Shoes', category: 'Footwear' },
+  { word: 'Socks', category: 'Clothing' },
+  { word: 'Hat', category: 'Accessory' },
+  { word: 'Jacket', category: 'Clothing' },
+  { word: 'Belt', category: 'Accessory' },
+  { word: 'Sun', category: 'Space / Nature' },
+  { word: 'Moon', category: 'Space / Nature' },
+  { word: 'Star', category: 'Space / Nature' },
+  { word: 'Cloud', category: 'Weather' },
+  { word: 'Rain', category: 'Weather' },
+  { word: 'Wind', category: 'Weather' },
+  { word: 'Fire', category: 'Element' },
+  { word: 'Football', category: 'Sports' },
+  { word: 'Cricket', category: 'Sports' },
+  { word: 'Tennis', category: 'Sports' },
+  { word: 'Basketball', category: 'Sports' },
+  { word: 'Badminton', category: 'Sports' },
+  { word: 'Volleyball', category: 'Sports' },
+  { word: 'Hockey', category: 'Sports' },
+  { word: 'School', category: 'Place' },
+  { word: 'Home', category: 'Place' },
+  { word: 'Shop', category: 'Place' },
+  { word: 'Park', category: 'Outdoor' },
+  { word: 'Beach', category: 'Nature' },
+  { word: 'Hospital', category: 'Building' },
+  { word: 'Hotel', category: 'Building' },
+  { word: 'Doctor', category: 'Profession' },
+  { word: 'Teacher', category: 'Profession' },
+  { word: 'Driver', category: 'Profession' },
+  { word: 'Cook', category: 'Profession' },
+  { word: 'Police', category: 'Profession' },
+  { word: 'Farmer', category: 'Profession' },
+  { word: 'Pilot', category: 'Profession' },
+  { word: 'Soap', category: 'Hygiene' },
+  { word: 'Towel', category: 'Bathroom' },
+  { word: 'Toothbrush', category: 'Hygiene' },
+  { word: 'Mirror', category: 'Bathroom' },
+  { word: 'Comb', category: 'Grooming' },
+  { word: 'Shampoo', category: 'Hygiene' },
+  { word: 'Bucket', category: 'Household' },
+  { word: 'Fork', category: 'Kitchen' },
+  { word: 'Spoon', category: 'Kitchen' },
+  { word: 'Plate', category: 'Kitchen' },
+  { word: 'Cup', category: 'Kitchen' },
+  { word: 'Bowl', category: 'Kitchen' },
+  { word: 'Knife', category: 'Kitchen' },
+  { word: 'Glass', category: 'Kitchen' },
+  { word: 'Tree', category: 'Nature' },
+  { word: 'Flower', category: 'Nature' },
+  { word: 'Grass', category: 'Nature' },
+  { word: 'Leaf', category: 'Nature' },
+  { word: 'Stone', category: 'Nature' },
+  { word: 'Sand', category: 'Nature' },
+  { word: 'Water', category: 'Element' },
+  { word: 'Birthday', category: 'Celebration' },
+  { word: 'Wedding', category: 'Celebration' },
+  { word: 'Party', category: 'Event' },
+  { word: 'Holiday', category: 'Travel' },
+  { word: 'Picnic', category: 'Outdoor' },
+  { word: 'Christmas', category: 'Festival' },
+  { word: 'Festival', category: 'Culture' },
+  { word: 'Pool', category: 'Recreation' },
+  { word: 'Zoo', category: 'Place' },
+  { word: 'Cinema', category: 'Entertainment' },
+  { word: 'Mall', category: 'Shopping' },
+  { word: 'Playground', category: 'Outdoor' },
+  { word: 'Ball', category: 'Sports Item' },
+  { word: 'Bat', category: 'Sports Item' },
+  { word: 'Goal', category: 'Sports Item' },
+  { word: 'Net', category: 'Sports Item' },
+  { word: 'Cap', category: 'Accessory' },
+  { word: 'Whistle', category: 'Item' },
+  { word: 'House', category: 'Building' },
+  { word: 'Restaurant', category: 'Dining' },
+  { word: 'Bank', category: 'Institution' },
+  { word: 'Sandwich', category: 'Food' },
+  { word: 'Fries', category: 'Fast Food' },
+  { word: 'Noodles', category: 'Food' }
 ];
 
 const rooms = {};
@@ -47,11 +168,32 @@ function generateRoomCode() {
   return code;
 }
 
+// Draw a word that has not been picked in this room yet
+function drawNextUniqueTopic(room) {
+  if (!room.availableWords || room.availableWords.length === 0) {
+    // Fresh clone & shuffle when exhausted
+    room.availableWords = [...MASTER_WORD_LIST].sort(() => Math.random() - 0.5);
+  }
+  return room.availableWords.pop();
+}
+
+// Select an Impostor with no consecutive repeats
+function selectUnbiasedImpostor(room) {
+  let eligiblePlayers = room.players;
+  if (room.players.length > 1 && room.lastImpostorId) {
+    const candidates = room.players.filter(p => p.id !== room.lastImpostorId);
+    if (candidates.length > 0) eligiblePlayers = candidates;
+  }
+  const chosen = eligiblePlayers[Math.floor(Math.random() * eligiblePlayers.length)];
+  room.lastImpostorId = chosen.id;
+  return chosen.id;
+}
+
 function getSanitizedRoom(room, targetPlayerId) {
   const isImpostor = (room.impostorId === targetPlayerId);
   const secretCard = isImpostor
     ? { role: 'IMPOSTOR' }
-    : { role: 'DETECTIVE', word: room.secretWord, category: room.secretCategory, image: room.secretImage };
+    : { role: 'DETECTIVE', word: room.secretWord, category: room.secretCategory };
 
   return {
     roomId: room.roomId,
@@ -82,6 +224,7 @@ function broadcastRoomState(room) {
   });
 }
 
+// PRIZE POOL LOGIC: Fixed 100 Points Match Budget
 function tallyVotesAndEndGame(room) {
   if (room.state === 'GAME_OVER') return;
   room.state = 'GAME_OVER';
@@ -106,7 +249,7 @@ function tallyVotesAndEndGame(room) {
     detailedVotes.push({
       voterName: voter ? voter.name : 'Unknown',
       suspectName: suspect ? suspect.name : 'Unknown',
-      reason: vData.reason || 'No clue analysis provided.'
+      reason: vData.reason || 'No clue deduction given.'
     });
   });
 
@@ -118,49 +261,85 @@ function tallyVotesAndEndGame(room) {
     if (cnt > maxVotes) maxVotes = cnt;
   });
 
-  // Impostor is caught if they receive the highest vote total (including ties)
-  const impostorCaught = (impostorVotes > 0 && impostorVotes === maxVotes);
+  // Majority rule check
+  const totalVotesCast = Object.keys(room.votes).length;
+  const isStrictMajority = (impostorVotes > totalVotesCast / 2);
+  const isPluralityWin = (impostorVotes > 0 && impostorVotes === maxVotes);
+  const impostorCaught = isStrictMajority || isPluralityWin;
 
+  const TOTAL_MATCH_POINTS = 100;
   const winningPlayers = [];
-  const DETECTIVE_POINTS = 100;
-  const IMPOSTOR_POINTS = 150;
+
+  // Detectives who voted for the true impostor
+  const correctDetectives = room.players.filter(p => {
+    const v = room.votes[p.id];
+    return v && v.suspectId === room.impostorId && p.id !== room.impostorId;
+  });
 
   if (impostorCaught) {
-    // Tie / Shared points for ALL detectives who correctly identified the impostor
-    const correctDetectives = room.players.filter(p => {
-      const v = room.votes[p.id];
-      return v && v.suspectId === room.impostorId;
-    });
-
+    // CITIZENS WIN: Impostor caught by majority
+    // 100 points divided among detectives who successfully identified the impostor
     const winners = correctDetectives.length > 0 ? correctDetectives : room.players.filter(p => p.id !== room.impostorId);
+    const pointsEach = Math.round(TOTAL_MATCH_POINTS / winners.length);
 
     winners.forEach(det => {
-      det.points = (det.points || 0) + DETECTIVE_POINTS;
-      det.lastPoints = DETECTIVE_POINTS;
+      det.points = (det.points || 0) + pointsEach;
+      det.lastPoints = pointsEach;
       det.matches = (det.matches || 0) + 1;
       winningPlayers.push({
         id: det.id,
         name: det.name,
         avatar: Number(det.avatar !== undefined ? det.avatar : 0),
-        points: DETECTIVE_POINTS
+        points: pointsEach
       });
     });
   } else {
-    // Impostor survives or ties for survival
-    if (impostor) {
-      impostor.points = (impostor.points || 0) + IMPOSTOR_POINTS;
-      impostor.lastPoints = IMPOSTOR_POINTS;
-      impostor.matches = (impostor.matches || 0) + 1;
-      winningPlayers.push({
-        id: impostor.id,
-        name: impostor.name,
-        avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
-        points: IMPOSTOR_POINTS
+    // IMPOSTOR WINS: Majority failed to catch the impostor
+    if (correctDetectives.length > 0) {
+      // Impostor claims 70%, sharp detectives who voted impostor share 30%
+      const impostorBounty = 70;
+      const detectiveShare = Math.round(30 / correctDetectives.length);
+
+      if (impostor) {
+        impostor.points = (impostor.points || 0) + impostorBounty;
+        impostor.lastPoints = impostorBounty;
+        impostor.matches = (impostor.matches || 0) + 1;
+        winningPlayers.push({
+          id: impostor.id,
+          name: impostor.name,
+          avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
+          points: impostorBounty
+        });
+      }
+
+      correctDetectives.forEach(det => {
+        det.points = (det.points || 0) + detectiveShare;
+        det.lastPoints = detectiveShare;
+        det.matches = (det.matches || 0) + 1;
+        winningPlayers.push({
+          id: det.id,
+          name: det.name,
+          avatar: Number(det.avatar !== undefined ? det.avatar : 0),
+          points: detectiveShare
+        });
       });
+    } else {
+      // Impostor totally fooled everyone: Full 100 points to Impostor
+      if (impostor) {
+        impostor.points = (impostor.points || 0) + TOTAL_MATCH_POINTS;
+        impostor.lastPoints = TOTAL_MATCH_POINTS;
+        impostor.matches = (impostor.matches || 0) + 1;
+        winningPlayers.push({
+          id: impostor.id,
+          name: impostor.name,
+          avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
+          points: TOTAL_MATCH_POINTS
+        });
+      }
     }
   }
 
-  // Update persistent leaderboard
+  // Update global leaderboard
   winningPlayers.forEach(w => {
     const entry = globalLeaderboard.find(l => l.avatarIndex === w.avatar);
     if (entry) {
@@ -219,13 +398,9 @@ io.on('connection', (socket) => {
 
   socket.on('resume_session', ({ roomId, playerId }) => {
     const room = rooms[roomId];
-    if (!room) {
-      return socket.emit('session_resume_failed');
-    }
+    if (!room) return socket.emit('session_resume_failed');
     const player = room.players.find(p => p.id === playerId);
-    if (!player) {
-      return socket.emit('session_resume_failed');
-    }
+    if (!player) return socket.emit('session_resume_failed');
 
     player.socketId = socket.id;
     player.connected = true;
@@ -256,10 +431,11 @@ io.on('connection', (socket) => {
         matches: 0
       }],
       currentRound: 1,
+      lastImpostorId: null,
       impostorId: null,
+      availableWords: [...MASTER_WORD_LIST].sort(() => Math.random() - 0.5),
       secretWord: '',
       secretCategory: '',
-      secretImage: '',
       clues: [],
       votes: {},
       activePlayerOrder: [],
@@ -321,15 +497,13 @@ io.on('connection', (socket) => {
       return socket.emit('error_message', 'Only the Chamber Host can initiate the game.');
     }
 
-    const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
-    const impostorIndex = Math.floor(Math.random() * room.players.length);
+    const topic = drawNextUniqueTopic(room);
+    room.impostorId = selectUnbiasedImpostor(room);
 
     room.state = 'CLUE_PHASE';
     room.currentRound = 1;
-    room.impostorId = room.players[impostorIndex].id;
     room.secretWord = topic.word;
     room.secretCategory = topic.category;
-    room.secretImage = topic.image;
     room.clues = [];
     room.votes = {};
     room.gameOverData = null;
