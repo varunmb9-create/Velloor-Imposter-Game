@@ -211,7 +211,7 @@
       font-family: 'Cinzel', serif;
     }
 
-    /* ALL DECORATIVE FX CANVASES HAVE ZERO POINTER EVENTS */
+    /* ALL DECORATIVE FX CANVASES */
     #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #fireGlow, #iceGlow {
       position: fixed;
       top: 0;
@@ -223,20 +223,23 @@
     }
 
     #emberCanvas { z-index: 2; }
-    #dragonCanvas { z-index: 4; }
+    
+    /* DRAGONS FLY OVER THE GAME CONTAINER (z-index: 10) WITHOUT BLOCKING TOUCHES */
+    #dragonCanvas { z-index: 50; }
+    
     #fireworksCanvas { z-index: 1001; }
 
     #fireGlow {
       background: radial-gradient(circle at center, rgba(255, 60, 0, 0.42), transparent 75%);
       opacity: 0;
-      z-index: 3;
+      z-index: 49;
       transition: opacity 0.35s ease-out;
     }
 
     #iceGlow {
       background: radial-gradient(circle at center, rgba(0, 210, 255, 0.42), transparent 75%);
       opacity: 0;
-      z-index: 3;
+      z-index: 49;
       transition: opacity 0.35s ease-out;
     }
 
@@ -796,15 +799,17 @@
     .trophy-container { 
       margin-bottom: 12px;
       display: flex;
+      flex-wrap: wrap;
       justify-content: center;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      max-width: 90vw;
     }
 
     .warrior-trophy-card {
       position: relative;
-      width: 130px;
-      height: 130px;
+      width: 135px;
+      height: 135px;
       border-radius: 16px;
       border: 3px solid #ffd700;
       box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 0 45px rgba(255, 140, 0, 0.45);
@@ -1113,7 +1118,6 @@
     const introVideo = document.getElementById('introVideoPlayer');
     const skipIntroBtn = document.getElementById('skipIntroBtn');
 
-    // Explicitly configure DOM video properties for mobile webkit
     introVideo.playsInline = true;
     introVideo.setAttribute('playsinline', '');
     introVideo.setAttribute('webkit-playsinline', '');
@@ -1132,7 +1136,6 @@
       const playPromise = introVideo.play();
       if (playPromise !== undefined) {
         playPromise.catch(error => {
-          // If browser strictly blocks unmuted autoplay, fall back to muted video rather than failing to a black screen
           introVideo.muted = true;
           introVideo.play().catch(() => {
             dismissIntro();
@@ -1193,9 +1196,11 @@
       '/trophy_7.png'
     ];
 
+    const preloadedTrophies = [];
     TROPHY_IMAGES.forEach(src => {
       const img = new Image();
       img.src = src;
+      preloadedTrophies.push(img);
     });
 
     let selectedAvatarIndex = 0;
@@ -1309,7 +1314,7 @@
     animateEmbers();
 
     // -------------------------------------------------------------
-    // DUAL DRAGONS ENGINE (DIRECT PNG UPLOAD FROM /public)
+    // DUAL DRAGONS ENGINE (SOARING ABOVE AND ACROSS GAMEPLAY)
     // -------------------------------------------------------------
     const dragonCanvas = document.getElementById('dragonCanvas');
     const dctx = dragonCanvas.getContext('2d');
@@ -2159,10 +2164,10 @@
         if (god.winningPlayers && god.winningPlayers.length > 0) {
           trophyBox.innerHTML = god.winningPlayers.map(w => {
             const avatarIdx = (w.avatar !== undefined) ? w.avatar : 0;
-            const trophySrc = TROPHY_IMAGES[avatarIdx] || '/trophy_0.png';
+            const trophySrc = `/trophy_${avatarIdx}.png`;
             return `
               <div class="warrior-trophy-card">
-                <img class="warrior-trophy-img" src="${trophySrc}" alt="${w.name}" onerror="this.src='${AVATAR_LIST[avatarIdx]}'"/>
+                <img class="warrior-trophy-img" src="${trophySrc}" alt="${w.name}"/>
               </div>
             `;
           }).join('');
