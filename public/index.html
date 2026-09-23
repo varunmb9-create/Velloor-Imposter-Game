@@ -198,7 +198,8 @@
       font-family: 'Cinzel', serif;
     }
 
-    #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #flameGlow {
+    /* ALL DECORATIVE FX CANVASES HAVE ZERO POINTER EVENTS */
+    #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #fireGlow, #iceGlow {
       position: fixed;
       top: 0;
       left: 0;
@@ -209,13 +210,21 @@
     }
 
     #emberCanvas { z-index: 2; }
-    #dragonCanvas { z-index: 3; }
+    #dragonCanvas { z-index: 4; }
     #fireworksCanvas { z-index: 1001; }
-    #flameGlow {
-      background: radial-gradient(circle at center, rgba(255, 80, 0, 0.55), transparent 75%);
+
+    #fireGlow {
+      background: radial-gradient(circle at center, rgba(255, 60, 0, 0.42), transparent 75%);
       opacity: 0;
-      z-index: 4;
-      transition: opacity 0.25s ease-out;
+      z-index: 3;
+      transition: opacity 0.35s ease-out;
+    }
+
+    #iceGlow {
+      background: radial-gradient(circle at center, rgba(0, 210, 255, 0.42), transparent 75%);
+      opacity: 0;
+      z-index: 3;
+      transition: opacity 0.35s ease-out;
     }
 
     #openingRitualModal {
@@ -887,7 +896,10 @@
   <canvas id="emberCanvas"></canvas>
   <canvas id="dragonCanvas"></canvas>
   <canvas id="fireworksCanvas"></canvas>
-  <div id="flameGlow"></div>
+  
+  <!-- ATMOSPHERIC DRAGON SENSORY GLOW LAYERS -->
+  <div id="fireGlow"></div>
+  <div id="iceGlow"></div>
 
   <div id="leaderboardModal" class="hidden">
     <div class="lb-card">
@@ -1084,7 +1096,6 @@
     const skipIntroBtn = document.getElementById('skipIntroBtn');
 
     function startIntroCinematic() {
-      // 1. Mandatory gesture unlocks audio & SFX simultaneously
       tryPlayBGMOnFirstTouch();
       playTouchSFX();
 
@@ -1092,12 +1103,10 @@
       introVideo.classList.remove('hidden');
       skipIntroBtn.classList.remove('hidden');
 
-      // 2. Play video with audio enabled
       introVideo.muted = false;
       const playPromise = introVideo.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Fallback if device still restricts unmuted autoplay
           introVideo.muted = true;
           introVideo.play().catch(() => dismissIntro());
         });
@@ -1118,7 +1127,6 @@
         introOverlay.classList.add('hidden');
       }, 600);
 
-      // Start background theme immediately when entering the main game
       if (bgmEnabled && bgmAudio.paused) {
         bgmAudio.play().catch(e => {});
       }
@@ -1141,10 +1149,6 @@
       img.src = src;
       preloadedImages.push(img);
     });
-
-    const DRAGON_IMG_SRC = 'https://i.postimg.cc/xq96mgrm/1000129477.png';
-    const dragonImage = new Image();
-    dragonImage.src = DRAGON_IMG_SRC;
 
     let selectedAvatarIndex = 0;
     const avatarGridEl = document.getElementById('avatarGrid');
@@ -1200,6 +1204,9 @@
       }
     });
 
+    // -------------------------------------------------------------
+    // BACKGROUND EMBER CANVAS
+    // -------------------------------------------------------------
     const emberCanvas = document.getElementById('emberCanvas');
     const ectx = emberCanvas.getContext('2d');
     let embers = [];
@@ -1253,85 +1260,196 @@
     }
     animateEmbers();
 
-    const lCanvas = document.getElementById('lightningCanvas');
-    const lctx = lCanvas.getContext('2d');
-    let lightningRunning = false;
+    // -------------------------------------------------------------
+    // DUAL DRAGONS ENGINE (DIRECT PNG UPLOAD FROM /public)
+    // -------------------------------------------------------------
+    const dragonCanvas = document.getElementById('dragonCanvas');
+    const dctx = dragonCanvas.getContext('2d');
 
-    function resizeLightningCanvas() {
-      lCanvas.width = window.innerWidth;
-      lCanvas.height = window.innerHeight;
+    function resizeDragonCanvas() {
+      dragonCanvas.width = window.innerWidth;
+      dragonCanvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeLightningCanvas);
-    resizeLightningCanvas();
+    window.addEventListener('resize', resizeDragonCanvas);
+    resizeDragonCanvas();
 
-    function drawLightningBolt(x1, y1, x2, y2, displace) {
-      if (displace < 4) {
-        lctx.beginPath();
-        lctx.moveTo(x1, y1);
-        lctx.lineTo(x2, y2);
-        lctx.stroke();
-        return;
+    // Red and Blue dragons loaded directly from your uploaded PNGs
+    const fireDragonImage = new Image();
+    fireDragonImage.src = '/dragon_fire.png';
+
+    const iceDragonImage = new Image();
+    iceDragonImage.src = '/dragon_ice.png';
+
+    let activeDragon = null; // Strictly enforces only one at a time
+    let nextDragonType = 'RED'; // Alternates RED <-> BLUE
+    let dragonParticles = [];
+
+    function triggerFireAtmosphere() {
+      playFireDragonRoarSFX();
+      const glow = document.getElementById('fireGlow');
+      if (glow) {
+        glow.style.opacity = '1';
+        setTimeout(() => glow.style.opacity = '0', 2200);
       }
-      const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * displace;
-      const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * displace;
-      drawLightningBolt(x1, y1, midX, midY, displace / 2);
-      drawLightningBolt(midX, midY, x2, y2, displace / 2);
     }
 
-    function runLightningStrikes() {
-      const modal = document.getElementById('openingRitualModal');
-      modal.classList.remove('hidden');
-      lightningRunning = true;
-      playThunderOpeningSFX();
-
-      const startTime = Date.now();
-      const duration = 3000;
-
-      function renderFrame() {
-        if (!lightningRunning) return;
-        const elapsed = Date.now() - startTime;
-        if (elapsed >= duration) {
-          lightningRunning = false;
-          modal.classList.add('hidden');
-          lctx.clearRect(0, 0, lCanvas.width, lCanvas.height);
-          return;
-        }
-
-        lctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
-        lctx.fillRect(0, 0, lCanvas.width, lCanvas.height);
-
-        const centerX = lCanvas.width / 2;
-        const centerY = lCanvas.height / 2;
-
-        const eightPoints = [
-          { x: centerX, y: -20 },
-          { x: lCanvas.width + 20, y: -20 },
-          { x: lCanvas.width + 20, y: centerY },
-          { x: lCanvas.width + 20, y: lCanvas.height + 20 },
-          { x: centerX, y: lCanvas.height + 20 },
-          { x: -20, y: lCanvas.height + 20 },
-          { x: -20, y: centerY },
-          { x: -20, y: -20 }
-        ];
-
-        if (Math.random() > 0.15) {
-          lctx.lineWidth = 3 + Math.random() * 2.5;
-          lctx.strokeStyle = Math.random() > 0.4 ? '#ffffff' : '#ffd700';
-          lctx.shadowColor = '#00e5ff';
-          lctx.shadowBlur = 24;
-
-          eightPoints.forEach(pt => {
-            if (Math.random() > 0.2) {
-              drawLightningBolt(pt.x, pt.y, centerX + (Math.random() - 0.5) * 40, centerY + (Math.random() - 0.5) * 40, 110);
-            }
-          });
-        }
-
-        requestAnimationFrame(renderFrame);
+    function triggerIceAtmosphere() {
+      playIceDragonBlizzardSFX();
+      const glow = document.getElementById('iceGlow');
+      if (glow) {
+        glow.style.opacity = '1';
+        setTimeout(() => glow.style.opacity = '0', 2200);
       }
-      renderFrame();
     }
 
+    function spawnNextDragon() {
+      if (activeDragon) return; // Wait until current dragon has completely left screen
+
+      const type = nextDragonType;
+      nextDragonType = (nextDragonType === 'RED') ? 'BLUE' : 'RED';
+
+      const cw = dragonCanvas.width;
+      const ch = dragonCanvas.height;
+
+      // 4 Trajectories: 0: Left->Right, 1: Right->Left, 2: Top->Bottom, 3: Bottom->Top
+      const traj = Math.floor(Math.random() * 4);
+      let x, y, vx, vy, angle, flipH = false;
+
+      const speed = 4.2 + Math.random() * 2.2;
+
+      if (traj === 0) {
+        // Left to Right
+        x = -180;
+        y = ch * 0.15 + Math.random() * (ch * 0.65);
+        vx = speed;
+        vy = (Math.random() - 0.5) * 1.5;
+        angle = Math.atan2(vy, vx);
+        flipH = false;
+      } else if (traj === 1) {
+        // Right to Left
+        x = cw + 180;
+        y = ch * 0.15 + Math.random() * (ch * 0.65);
+        vx = -speed;
+        vy = (Math.random() - 0.5) * 1.5;
+        angle = Math.atan2(vy, -vx);
+        flipH = true;
+      } else if (traj === 2) {
+        // Top to Bottom
+        x = cw * 0.1 + Math.random() * (cw * 0.8);
+        y = -180;
+        vx = (Math.random() - 0.5) * speed;
+        vy = speed;
+        angle = Math.atan2(vy, vx);
+        flipH = (vx < 0);
+      } else {
+        // Bottom to Top
+        x = cw * 0.1 + Math.random() * (cw * 0.8);
+        y = ch + 180;
+        vx = (Math.random() - 0.5) * speed;
+        vy = -speed;
+        angle = Math.atan2(vy, vx);
+        flipH = (vx < 0);
+      }
+
+      activeDragon = {
+        type,
+        x,
+        y,
+        vx,
+        vy,
+        angle,
+        flipH,
+        width: 150,
+        height: 110
+      };
+
+      if (type === 'RED') {
+        triggerFireAtmosphere();
+      } else {
+        triggerIceAtmosphere();
+      }
+    }
+
+    function updateAndDrawDragons() {
+      dctx.clearRect(0, 0, dragonCanvas.width, dragonCanvas.height);
+
+      // Render dragon trail particles
+      for (let i = dragonParticles.length - 1; i >= 0; i--) {
+        const p = dragonParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= 0.024;
+        p.size *= 0.97;
+
+        if (p.alpha <= 0) {
+          dragonParticles.splice(i, 1);
+        } else {
+          dctx.save();
+          dctx.globalAlpha = p.alpha;
+          dctx.fillStyle = p.color;
+          dctx.shadowColor = p.color;
+          dctx.shadowBlur = 10;
+          dctx.beginPath();
+          dctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          dctx.fill();
+          dctx.restore();
+        }
+      }
+
+      if (activeDragon) {
+        const d = activeDragon;
+        d.x += d.vx;
+        d.y += d.vy;
+
+        // Dynamic elemental trail colors
+        const trailColor = (d.type === 'RED')
+          ? (Math.random() > 0.4 ? '#ff3b00' : (Math.random() > 0.5 ? '#ff9900' : '#ffd700'))
+          : (Math.random() > 0.4 ? '#00e5ff' : (Math.random() > 0.5 ? '#80d8ff' : '#ffffff'));
+
+        dragonParticles.push({
+          x: d.x + (Math.random() - 0.5) * 20,
+          y: d.y + (Math.random() - 0.5) * 20,
+          vx: -d.vx * 0.2 + (Math.random() - 0.5) * 1.5,
+          vy: -d.vy * 0.2 + (Math.random() - 0.5) * 1.5,
+          size: 2.5 + Math.random() * 3.5,
+          alpha: 0.9,
+          color: trailColor
+        });
+
+        // Draw Dragon image
+        dctx.save();
+        dctx.translate(d.x, d.y);
+        dctx.rotate(d.angle);
+        if (d.flipH) dctx.scale(-1, 1);
+
+        const imgToDraw = (d.type === 'RED') ? fireDragonImage : iceDragonImage;
+
+        if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
+          dctx.shadowColor = (d.type === 'RED') ? '#ff3300' : '#00e5ff';
+          dctx.shadowBlur = 18;
+          dctx.drawImage(imgToDraw, -d.width / 2, -d.height / 2, d.width, d.height);
+        }
+        dctx.restore();
+
+        // Screen exit check
+        const margin = 260;
+        const cw = dragonCanvas.width;
+        const ch = dragonCanvas.height;
+        if (d.x < -margin || d.x > cw + margin || d.y < -margin || d.y > ch + margin) {
+          activeDragon = null; // Frees flight corridor for the next dragon
+        }
+      }
+
+      requestAnimationFrame(updateAndDrawDragons);
+    }
+    updateAndDrawDragons();
+
+    // Spawns one dragon at regular intervals (every 7 seconds)
+    setInterval(spawnNextDragon, 7000);
+
+    // -------------------------------------------------------------
+    // PROCEDURAL AUDIO SYNTHESIZERS FOR DUAL DRAGONS
+    // -------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
 
@@ -1389,6 +1507,71 @@
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.035);
+      } catch (e) {}
+    }
+
+    // RED DRAGON FLAME ROAR SFX
+    function playFireDragonRoarSFX() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getSFXContext();
+        const now = ctx.currentTime;
+        const dur = 1.8;
+        const bufferSize = ctx.sampleRate * dur;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(450, now);
+        filter.frequency.exponentialRampToValueAtTime(120, now + dur);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + dur);
+      } catch (e) {}
+    }
+
+    // BLUE DRAGON ICE BLIZZARD SFX
+    function playIceDragonBlizzardSFX() {
+      if (!sfxEnabled) return;
+      try {
+        const ctx = getSFXContext();
+        const now = ctx.currentTime;
+        const dur = 1.6;
+        const bufferSize = ctx.sampleRate * dur;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.exponentialRampToValueAtTime(800, now + dur);
+        filter.Q.setValueAtTime(4.0, now);
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + dur);
       } catch (e) {}
     }
 
@@ -1491,57 +1674,91 @@
       }
     });
 
-    const canvas = document.getElementById('dragonCanvas');
-    const dctx = canvas.getContext('2d');
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    // -------------------------------------------------------------
+    // OPENING CEREMONY LIGHTNING RITUAL
+    // -------------------------------------------------------------
+    const lCanvas = document.getElementById('lightningCanvas');
+    const lctx = lCanvas.getContext('2d');
+    let lightningRunning = false;
+
+    function resizeLightningCanvas() {
+      lCanvas.width = window.innerWidth;
+      lCanvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    window.addEventListener('resize', resizeLightningCanvas);
+    resizeLightningCanvas();
 
-    let dragon = null;
-    function spawnDragon() {
-      const fromLeft = Math.random() > 0.5;
-      const banner = document.getElementById('mainBannerHeading').getBoundingClientRect();
-      const targetY = Math.max(35, banner.top + (Math.random() * 30 - 15));
-
-      dragon = {
-        x: fromLeft ? -220 : canvas.width + 220,
-        y: targetY,
-        vx: fromLeft ? (5 + Math.random() * 2) : -(5 + Math.random() * 2),
-        vy: (Math.random() - 0.5) * 1.5,
-        width: 150,
-        height: 110,
-        facingLeft: !fromLeft,
-        flameDone: false
-      };
-    }
-
-    function drawDragon(d) {
-      dctx.save();
-      dctx.translate(d.x, d.y);
-      if (d.facingLeft) dctx.scale(-1, 1);
-      if (dragonImage.complete && dragonImage.naturalWidth > 0) {
-        dctx.drawImage(dragonImage, -d.width / 2, -d.height / 2, d.width, d.height);
+    function drawLightningBolt(x1, y1, x2, y2, displace) {
+      if (displace < 4) {
+        lctx.beginPath();
+        lctx.moveTo(x1, y1);
+        lctx.lineTo(x2, y2);
+        lctx.stroke();
+        return;
       }
-      dctx.restore();
+      const midX = (x1 + x2) / 2 + (Math.random() - 0.5) * displace;
+      const midY = (y1 + y2) / 2 + (Math.random() - 0.5) * displace;
+      drawLightningBolt(x1, y1, midX, midY, displace / 2);
+      drawLightningBolt(midX, midY, x2, y2, displace / 2);
     }
 
-    function animateDragon() {
-      dctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (dragon) {
-        dragon.x += dragon.vx;
-        dragon.y += dragon.vy;
-        drawDragon(dragon);
-        if (dragon.vx > 0 && dragon.x > canvas.width + 300) dragon = null;
-        if (dragon.vx < 0 && dragon.x < -300) dragon = null;
+    function runLightningStrikes() {
+      const modal = document.getElementById('openingRitualModal');
+      modal.classList.remove('hidden');
+      lightningRunning = true;
+      playThunderOpeningSFX();
+
+      const startTime = Date.now();
+      const duration = 3000;
+
+      function renderFrame() {
+        if (!lightningRunning) return;
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= duration) {
+          lightningRunning = false;
+          modal.classList.add('hidden');
+          lctx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+          return;
+        }
+
+        lctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+        lctx.fillRect(0, 0, lCanvas.width, lCanvas.height);
+
+        const centerX = lCanvas.width / 2;
+        const centerY = lCanvas.height / 2;
+
+        const eightPoints = [
+          { x: centerX, y: -20 },
+          { x: lCanvas.width + 20, y: -20 },
+          { x: lCanvas.width + 20, y: centerY },
+          { x: lCanvas.width + 20, y: lCanvas.height + 20 },
+          { x: centerX, y: lCanvas.height + 20 },
+          { x: -20, y: lCanvas.height + 20 },
+          { x: -20, y: centerY },
+          { x: -20, y: -20 }
+        ];
+
+        if (Math.random() > 0.15) {
+          lctx.lineWidth = 3 + Math.random() * 2.5;
+          lctx.strokeStyle = Math.random() > 0.4 ? '#ffffff' : '#ffd700';
+          lctx.shadowColor = '#00e5ff';
+          lctx.shadowBlur = 24;
+
+          eightPoints.forEach(pt => {
+            if (Math.random() > 0.2) {
+              drawLightningBolt(pt.x, pt.y, centerX + (Math.random() - 0.5) * 40, centerY + (Math.random() - 0.5) * 40, 110);
+            }
+          });
+        }
+
+        requestAnimationFrame(renderFrame);
       }
-      requestAnimationFrame(animateDragon);
+      renderFrame();
     }
-    animateDragon();
-    setInterval(spawnDragon, 5000);
 
+    // -------------------------------------------------------------
+    // VICTORY FIREWORKS CANVAS
+    // -------------------------------------------------------------
     const fwCanvas = document.getElementById('fireworksCanvas');
     const fwCtx = fwCanvas.getContext('2d');
     let fireworks = [];
