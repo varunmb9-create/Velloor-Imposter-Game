@@ -754,6 +754,9 @@
       transition: transform 0.15s ease-out;
     }
 
+    /* -------------------------------------------------------------
+       VICTORY CELEBRATION MODAL WITH WARRIOR TROPHY SHOWCASE
+       ------------------------------------------------------------- */
     #partyModal {
       position: fixed;
       top: 0;
@@ -777,32 +780,37 @@
       box-shadow: inset 0 0 100px rgba(255, 0, 20, 0.45);
     }
 
-    .trophy-container { perspective: 800px; margin-bottom: 12px; }
-    .gold-trophy {
-      width: 120px;
-      height: 155px;
-      background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 50%, #fbf5b7 80%, #aa771c 100%);
-      clip-path: polygon(15% 0%, 85% 0%, 100% 40%, 75% 65%, 60% 65%, 60% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 40% 85%, 40% 65%, 25% 65%, 0% 40%);
-      position: relative;
-      box-shadow: 0 0 45px rgba(255, 215, 0, 0.85);
-      animation: trophyShineTilt 4s infinite ease-in-out;
+    .trophy-container { 
+      margin-bottom: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
+      gap: 12px;
     }
-    .trophy-text {
-      position: absolute;
-      top: 28%;
-      color: #241400;
-      font-weight: 900;
-      font-size: 1.05rem;
-      letter-spacing: 3px;
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+
+    .warrior-trophy-card {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      border-radius: 16px;
+      border: 3px solid #ffd700;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.7), 0 0 45px rgba(255, 140, 0, 0.45);
+      background: radial-gradient(circle, #2b1838 0%, #0c0812 100%);
+      overflow: hidden;
+      animation: trophyCardGlow 2.5s infinite alternate ease-in-out;
     }
-    @keyframes trophyShineTilt {
-      0% { transform: rotateY(-18deg) rotateX(10deg); filter: brightness(1); }
-      50% { transform: rotateY(18deg) rotateX(-10deg); filter: brightness(1.35); }
-      100% { transform: rotateY(-18deg) rotateX(10deg); filter: brightness(1); }
+
+    @keyframes trophyCardGlow {
+      0% { transform: scale(1) translateY(0); box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+      50% { transform: scale(1.04) translateY(-4px); box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), 0 0 55px rgba(255, 68, 0, 0.5); }
+      100% { transform: scale(1) translateY(0); box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+    }
+
+    .warrior-trophy-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .crowned-winners-container {
@@ -897,7 +905,6 @@
   <canvas id="dragonCanvas"></canvas>
   <canvas id="fireworksCanvas"></canvas>
   
-  <!-- ATMOSPHERIC DRAGON SENSORY GLOW LAYERS -->
   <div id="fireGlow"></div>
   <div id="iceGlow"></div>
 
@@ -924,12 +931,9 @@
     </div>
   </div>
 
+  <!-- VICTORY CELEBRATION MODAL -->
   <div id="partyModal" class="hidden">
-    <div class="trophy-container">
-      <div class="gold-trophy">
-        <div class="trophy-text">VELLOOR</div>
-      </div>
-    </div>
+    <div class="trophy-container" id="victoryTrophyContainer"></div>
     <h1 id="partyHeader" style="font-size: 1.7rem; font-weight: 900; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);"></h1>
     <p id="partySub" class="silver-text" style="font-size: 0.95rem; max-width: 380px;"></p>
     <div id="crownedWinnersList" class="crowned-winners-container"></div>
@@ -1143,11 +1147,31 @@
       'https://i.postimg.cc/Y4019wNc/1789935612680.png'
     ];
 
+    // Preload Avatar Icons
     const preloadedImages = [];
     AVATAR_LIST.forEach(src => {
       const img = new Image();
       img.src = src;
       preloadedImages.push(img);
+    });
+
+    // -------------------------------------------------------------
+    // PRELOAD 8 CHARACTER TROPHY IMAGES FROM /public
+    // -------------------------------------------------------------
+    const TROPHY_IMAGES = [
+      '/trophy_0.png',
+      '/trophy_1.png',
+      '/trophy_2.png',
+      '/trophy_3.png',
+      '/trophy_4.png',
+      '/trophy_5.png',
+      '/trophy_6.png',
+      '/trophy_7.png'
+    ];
+
+    TROPHY_IMAGES.forEach(src => {
+      const img = new Image();
+      img.src = src;
     });
 
     let selectedAvatarIndex = 0;
@@ -1273,15 +1297,14 @@
     window.addEventListener('resize', resizeDragonCanvas);
     resizeDragonCanvas();
 
-    // Red and Blue dragons loaded directly from your uploaded PNGs
     const fireDragonImage = new Image();
     fireDragonImage.src = '/dragon_fire.png';
 
     const iceDragonImage = new Image();
     iceDragonImage.src = '/dragon_ice.png';
 
-    let activeDragon = null; // Strictly enforces only one at a time
-    let nextDragonType = 'RED'; // Alternates RED <-> BLUE
+    let activeDragon = null;
+    let nextDragonType = 'RED';
     let dragonParticles = [];
 
     function triggerFireAtmosphere() {
@@ -1303,7 +1326,7 @@
     }
 
     function spawnNextDragon() {
-      if (activeDragon) return; // Wait until current dragon has completely left screen
+      if (activeDragon) return;
 
       const type = nextDragonType;
       nextDragonType = (nextDragonType === 'RED') ? 'BLUE' : 'RED';
@@ -1311,14 +1334,11 @@
       const cw = dragonCanvas.width;
       const ch = dragonCanvas.height;
 
-      // 4 Trajectories: 0: Left->Right, 1: Right->Left, 2: Top->Bottom, 3: Bottom->Top
       const traj = Math.floor(Math.random() * 4);
       let x, y, vx, vy, angle, flipH = false;
-
       const speed = 4.2 + Math.random() * 2.2;
 
       if (traj === 0) {
-        // Left to Right
         x = -180;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = speed;
@@ -1326,7 +1346,6 @@
         angle = Math.atan2(vy, vx);
         flipH = false;
       } else if (traj === 1) {
-        // Right to Left
         x = cw + 180;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = -speed;
@@ -1334,7 +1353,6 @@
         angle = Math.atan2(vy, -vx);
         flipH = true;
       } else if (traj === 2) {
-        // Top to Bottom
         x = cw * 0.1 + Math.random() * (cw * 0.8);
         y = -180;
         vx = (Math.random() - 0.5) * speed;
@@ -1342,7 +1360,6 @@
         angle = Math.atan2(vy, vx);
         flipH = (vx < 0);
       } else {
-        // Bottom to Top
         x = cw * 0.1 + Math.random() * (cw * 0.8);
         y = ch + 180;
         vx = (Math.random() - 0.5) * speed;
@@ -1373,7 +1390,6 @@
     function updateAndDrawDragons() {
       dctx.clearRect(0, 0, dragonCanvas.width, dragonCanvas.height);
 
-      // Render dragon trail particles
       for (let i = dragonParticles.length - 1; i >= 0; i--) {
         const p = dragonParticles[i];
         p.x += p.vx;
@@ -1401,7 +1417,6 @@
         d.x += d.vx;
         d.y += d.vy;
 
-        // Dynamic elemental trail colors
         const trailColor = (d.type === 'RED')
           ? (Math.random() > 0.4 ? '#ff3b00' : (Math.random() > 0.5 ? '#ff9900' : '#ffd700'))
           : (Math.random() > 0.4 ? '#00e5ff' : (Math.random() > 0.5 ? '#80d8ff' : '#ffffff'));
@@ -1416,7 +1431,6 @@
           color: trailColor
         });
 
-        // Draw Dragon image
         dctx.save();
         dctx.translate(d.x, d.y);
         dctx.rotate(d.angle);
@@ -1431,20 +1445,17 @@
         }
         dctx.restore();
 
-        // Screen exit check
         const margin = 260;
         const cw = dragonCanvas.width;
         const ch = dragonCanvas.height;
         if (d.x < -margin || d.x > cw + margin || d.y < -margin || d.y > ch + margin) {
-          activeDragon = null; // Frees flight corridor for the next dragon
+          activeDragon = null;
         }
       }
 
       requestAnimationFrame(updateAndDrawDragons);
     }
     updateAndDrawDragons();
-
-    // Spawns one dragon at regular intervals (every 7 seconds)
     setInterval(spawnNextDragon, 7000);
 
     // -------------------------------------------------------------
@@ -1510,7 +1521,6 @@
       } catch (e) {}
     }
 
-    // RED DRAGON FLAME ROAR SFX
     function playFireDragonRoarSFX() {
       if (!sfxEnabled) return;
       try {
@@ -1542,7 +1552,6 @@
       } catch (e) {}
     }
 
-    // BLUE DRAGON ICE BLIZZARD SFX
     function playIceDragonBlizzardSFX() {
       if (!sfxEnabled) return;
       try {
@@ -2119,6 +2128,20 @@
           document.body.classList.remove('impostor-win-atmosphere');
           pModal.classList.remove('impostor-win-modal');
           container.classList.remove('impostor-win-box');
+        }
+
+        // DYNAMIC CHARACTER TROPHY SHOWCASE
+        const trophyBox = document.getElementById('victoryTrophyContainer');
+        if (god.winningPlayers && god.winningPlayers.length > 0) {
+          trophyBox.innerHTML = god.winningPlayers.map(w => {
+            const avatarIdx = (w.avatar !== undefined) ? w.avatar : 0;
+            const trophySrc = TROPHY_IMAGES[avatarIdx] || '/trophy_0.png';
+            return `
+              <div class="warrior-trophy-card">
+                <img class="warrior-trophy-img" src="${trophySrc}" alt="${w.name}" onerror="this.src='${AVATAR_LIST[avatarIdx]}'"/>
+              </div>
+            `;
+          }).join('');
         }
 
         pModal.classList.remove('hidden');
