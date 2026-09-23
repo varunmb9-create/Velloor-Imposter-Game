@@ -975,7 +975,7 @@
       <div style="text-align: center; margin: 15px 0 5px 0; color: #777;">— OR JOIN EXISTING —</div>
       
       <input type="text" id="roomCodeInput" placeholder="4-Letter Room Code" maxlength="4" style="text-transform: uppercase;" />
-      <button class="silver-btn" onclick="joinRoom()">Join Game</button>
+      <button class="silver-btn" id="joinRoomBtn" onclick="joinRoom()">Join Game</button>
     </div>
 
     <!-- 2. LOBBY SCREEN -->
@@ -1359,7 +1359,6 @@
       }
     }
 
-    // Top-down vertical dimensions: 130px width by 220px height
     function createDragonInstance(type, startX, startY, vx, vy, width = 130, height = 220) {
       return {
         type,
@@ -1384,28 +1383,24 @@
       const traj = Math.floor(Math.random() * 4);
 
       let x, y, vx, vy;
-      const speed = 260; // Pixels per second
+      const speed = 260;
 
       if (traj === 0) {
-        // Left to Right (slightly angled)
         x = -240;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = speed;
         vy = (Math.random() - 0.5) * 80;
       } else if (traj === 1) {
-        // Right to Left (slightly angled)
         x = cw + 240;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = -speed;
         vy = (Math.random() - 0.5) * 80;
       } else if (traj === 2) {
-        // Top to Bottom
         x = cw * 0.2 + Math.random() * (cw * 0.6);
         y = -240;
         vx = (Math.random() - 0.5) * 120;
         vy = speed;
       } else {
-        // Bottom to Top
         x = cw * 0.2 + Math.random() * (cw * 0.6);
         y = ch + 240;
         vx = (Math.random() - 0.5) * 120;
@@ -1430,10 +1425,7 @@
       const speedX = 260;
       const speedY = -400;
 
-      // Red Fire Dragon: from bottom-left climbing to top-right
       const redDragon = createDragonInstance('RED', -120, ch + 80, speedX, speedY, 135, 230);
-
-      // Blue Ice Dragon: from bottom-right climbing to top-left
       const blueDragon = createDragonInstance('BLUE', cw + 120, ch + 80, -speedX, speedY, 135, 230);
 
       activeDragons.push(redDragon, blueDragon);
@@ -1454,7 +1446,6 @@
 
       dctx.clearRect(0, 0, dragonCanvas.width, dragonCanvas.height);
 
-      // 1. Particle Render
       for (let i = dragonParticles.length - 1; i >= 0; i--) {
         const p = dragonParticles[i];
         p.x += p.vx * dt;
@@ -1477,13 +1468,11 @@
         }
       }
 
-      // 2. Dragon Render (Direct Heading Alignment)
       for (let idx = activeDragons.length - 1; idx >= 0; idx--) {
         const d = activeDragons[idx];
         d.x += d.vx * dt;
         d.y += d.vy * dt;
 
-        // Trail particles from the tail
         const trailColor = (d.type === 'RED')
           ? (Math.random() > 0.4 ? '#ff3b00' : (Math.random() > 0.5 ? '#ff9900' : '#ffd700'))
           : (Math.random() > 0.4 ? '#00e5ff' : (Math.random() > 0.5 ? '#80d8ff' : '#ffffff'));
@@ -1498,8 +1487,6 @@
           color: trailColor
         });
 
-        // The image points STRAIGHT UP (-PI/2).
-        // Adding Math.PI/2 directly rotates the head to match the velocity vector in all directions!
         const rotationAngle = Math.atan2(d.vy, d.vx) + Math.PI / 2;
 
         dctx.save();
@@ -1515,7 +1502,6 @@
         }
         dctx.restore();
 
-        // Screen boundary cull
         const margin = 320;
         const cw = dragonCanvas.width;
         const ch = dragonCanvas.height;
@@ -1990,27 +1976,92 @@
       syncGameView(roomData);
     });
 
+    // -------------------------------------------------------------
+    // BULLETPROOF ROOM CREATION & JOINING (ZERO-FREEZE FAILSAFE)
+    // -------------------------------------------------------------
+    let createTimeoutTimer = null;
+
+    function resetCreateBtn() {
+      const btn = document.getElementById('createRoomBtn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Create New Game';
+      }
+      if (createTimeoutTimer) {
+        clearTimeout(createTimeoutTimer);
+        createTimeoutTimer = null;
+      }
+    }
+
     function createRoom() {
       tryPlayBGMOnFirstTouch();
-      const name = document.getElementById('playerName').value.trim();
+      const nameInput = document.getElementById('playerName');
+      const name = nameInput ? nameInput.value.trim() : '';
       if (!name) return alert('Enter your nickname');
       
       const btn = document.getElementById('createRoomBtn');
-      btn.disabled = true;
-      btn.textContent = 'Creating Chamber...';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Creating Chamber...';
+      }
 
       sessionStorage.removeItem('velloor_room_id');
       sessionStorage.setItem('velloor_player_name', name);
-      socket.emit('create_room', { playerName: name, avatar: selectedAvatarIndex, playerId });
+
+      // Auto-reset failsafe after 4.5 seconds so user is never stuck
+      if (createTimeoutTimer) clearTimeout(createTimeoutTimer);
+      createTimeoutTimer = setTimeout(() => {
+        if (btn && btn.disabled) {
+          resetCreateBtn();
+          alert('Chamber connection timed out. Please check your connection and tap Create again.');
+        }
+      }, 4500);
+
+      const payload = { playerName: name, avatar: selectedAvatarIndex, playerId };
+
+      if (socket.connected) {
+        socket.emit('create_room', payload);
+      } else {
+        // If socket is momentarily negotiating connection, wait and emit on connect
+        socket.once('connect', () => {
+          socket.emit('create_room', payload);
+        });
+        socket.connect();
+      }
     }
 
     function joinRoom() {
       tryPlayBGMOnFirstTouch();
-      const name = document.getElementById('playerName').value.trim();
-      const code = document.getElementById('roomCodeInput').value.trim();
+      const nameInput = document.getElementById('playerName');
+      const codeInput = document.getElementById('roomCodeInput');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
       if (!name || !code) return alert('Enter both name and 4-letter code');
+
       sessionStorage.setItem('velloor_player_name', name);
-      socket.emit('join_room', { roomId: code, playerName: name, avatar: selectedAvatarIndex, playerId });
+
+      const joinBtn = document.getElementById('joinRoomBtn');
+      if (joinBtn) {
+        joinBtn.disabled = true;
+        joinBtn.textContent = 'Joining...';
+        setTimeout(() => {
+          if (joinBtn) {
+            joinBtn.disabled = false;
+            joinBtn.textContent = 'Join Game';
+          }
+        }, 4000);
+      }
+
+      const payload = { roomId: code, playerName: name, avatar: selectedAvatarIndex, playerId };
+
+      if (socket.connected) {
+        socket.emit('join_room', payload);
+      } else {
+        socket.once('connect', () => {
+          socket.emit('join_room', payload);
+        });
+        socket.connect();
+      }
     }
 
     function shareGameInvite() {
@@ -2022,8 +2073,7 @@
     }
 
     socket.on('room_created', (data) => {
-      const btn = document.getElementById('createRoomBtn');
-      if (btn) { btn.disabled = false; btn.textContent = 'Create New Game'; }
+      resetCreateBtn();
       currentRoomId = data.roomId;
       sessionStorage.setItem('velloor_room_id', currentRoomId);
       document.getElementById('lobbyRoomCode').textContent = data.roomId;
@@ -2031,6 +2081,11 @@
     });
 
     socket.on('room_joined', (data) => {
+      const joinBtn = document.getElementById('joinRoomBtn');
+      if (joinBtn) {
+        joinBtn.disabled = false;
+        joinBtn.textContent = 'Join Game';
+      }
       currentRoomId = data.roomId;
       sessionStorage.setItem('velloor_room_id', currentRoomId);
       document.getElementById('lobbyRoomCode').textContent = data.roomId;
@@ -2311,8 +2366,9 @@
     }
 
     socket.on('error_message', (msg) => {
-      const btn = document.getElementById('createRoomBtn');
-      if (btn) { btn.disabled = false; btn.textContent = 'Create New Game'; }
+      resetCreateBtn();
+      const joinBtn = document.getElementById('joinRoomBtn');
+      if (joinBtn) { joinBtn.disabled = false; joinBtn.textContent = 'Join Game'; }
       const playBtn = document.getElementById('playAgainBtn');
       if (playBtn) playBtn.disabled = false;
       const clueBtn = document.getElementById('transmitClueBtn');
