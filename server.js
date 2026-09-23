@@ -2,12 +2,10 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { 
+const io = new Server(server, {
   cors: { origin: '*' },
   pingTimeout: 30000,
   pingInterval: 10000
@@ -15,110 +13,51 @@ const io = new Server(server, {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// -------------------------------------------------------------
-// LEADERBOARD PERSISTENCE
-// -------------------------------------------------------------
-const LEADERBOARD_FILE = path.join(__dirname, 'leaderboard.json');
-
-function createFreshLeaderboard() {
-  const board = [];
-  for (let i = 0; i < 8; i++) {
-    board.push({
-      avatarIndex: i,
-      matches: 0,
-      lastPoints: 0,
-      points: 0
-    });
-  }
-  return board;
+// Global persistent in-memory leaderboard across matches
+const globalLeaderboard = [];
+for (let i = 0; i < 8; i++) {
+  globalLeaderboard.push({
+    avatarIndex: i,
+    matches: 0,
+    lastPoints: 0,
+    points: 0
+  });
 }
 
-function initLeaderboard() {
-  if (fs.existsSync(LEADERBOARD_FILE)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8'));
-      if (Array.isArray(data) && data.length === 8) {
-        return data.map((d, i) => ({
-          avatarIndex: i,
-          matches: Number(d.matches) || 0,
-          lastPoints: Number(d.lastPoints) || 0,
-          points: Number(d.points) || 0
-        }));
-      }
-    } catch (e) {}
-  }
-  const defaultBoard = createFreshLeaderboard();
-  saveLeaderboard(defaultBoard);
-  return defaultBoard;
-}
+// Built-in topics
+const TOPICS = [
+  { word: 'Dragon', category: 'Mythical Beast', image: 'https://images.unsplash.com/photo-1577493340887-b7bfff550145?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Crown', category: 'Royal Regalia', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Castle', category: 'Architecture', image: 'https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Sword', category: 'Weapon', image: 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Shield', category: 'Armor', image: 'https://images.unsplash.com/photo-1618336753974-aae8e04506aa?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Throne', category: 'Royal Furniture', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Potion', category: 'Alchemy', image: 'https://images.unsplash.com/photo-1514733670139-4d87a1941d55?auto=format&fit=crop&w=400&q=80' },
+  { word: 'Chariot', category: 'Vehicle', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80' }
+];
 
-function saveLeaderboard(board) {
-  try {
-    fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(board, null, 2), 'utf8');
-  } catch (e) {
-    console.error('Error saving leaderboard', e);
-  }
-}
-
-let avatarLeaderboard = initLeaderboard();
-
-function loadAllDecks() {
-  try {
-    const raw = fs.readFileSync(path.join(__dirname, 'words.json'), 'utf8');
-    const data = JSON.parse(raw);
-    if (Array.isArray(data) && data.length > 0) return data;
-  } catch (err) {
-    console.error('Error reading words.json');
-  }
-  return [
-    { category: 'Landmarks', word: 'Taj Mahal', image: '' },
-    { category: 'Vehicles', word: 'Helicopter', image: '' }
-  ];
-}
-
-function secureShuffle(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = crypto.randomInt(0, i + 1);
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-const masterDeck = loadAllDecks();
 const rooms = {};
 
 function generateRoomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   let code = '';
   for (let i = 0; i < 4; i++) {
-    code += chars.charAt(crypto.randomInt(0, chars.length));
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
 }
 
-function broadcastRoom(roomId) {
-  const room = rooms[roomId];
-  if (!room) return;
-  room.players.forEach(p => {
-    if (p.socketId && p.connected) {
-      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
-    }
-  });
-}
+function getSanitizedRoom(room, targetPlayerId) {
+  const isImpostor = (room.impostorId === targetPlayerId);
+  const secretCard = isImpostor
+    ? { role: 'IMPOSTOR' }
+    : { role: 'DETECTIVE', word: room.secretWord, category: room.secretCategory, image: room.secretImage };
 
-function getSanitizedRoom(room, forPlayerId) {
-  if (!room) return null;
-  const self = room.players.find(p => p.id === forPlayerId);
-  const activePlayers = room.players.filter(p => p.connected);
   return {
     roomId: room.roomId,
-    state: room.state,
     hostId: room.hostId,
+    state: room.state,
     currentRound: room.currentRound,
-    totalRounds: room.totalRounds,
-    turnIndex: room.turnIndex,
-    activePlayer: room.players[room.turnIndex] ? { id: room.players[room.turnIndex].id, name: room.players[room.turnIndex].name } : null,
     players: room.players.map(p => ({
       id: p.id,
       name: p.name,
@@ -126,420 +65,397 @@ function getSanitizedRoom(room, forPlayerId) {
       isHost: p.id === room.hostId,
       connected: p.connected
     })),
+    activePlayer: room.activePlayerOrder.length > 0 ? room.players.find(p => p.id === room.activePlayerOrder[room.currentTurnIndex]) : null,
     clues: room.clues,
-    secretCard: self ? (self.role === 'IMPOSTOR' ? { role: 'IMPOSTOR' } : {
-      role: 'CITIZEN',
-      category: room.currentCard ? room.currentCard.category : 'General',
-      word: room.currentCard ? room.currentCard.word : 'Secret Topic',
-      image: room.currentCard ? room.currentCard.image : ''
-    }) : null,
+    secretCard: (room.state === 'CLUE_PHASE' || room.state === 'VOTING_PHASE') ? secretCard : null,
     votesCount: Object.keys(room.votes).length,
-    totalVoters: activePlayers.length,
-    gameOverData: room.state === 'GAME_OVER' ? room.gameOverData : null
+    totalVoters: room.players.length,
+    gameOverData: room.gameOverData || null
   };
 }
 
-function finalizeMatchVotes(room) {
-  if (!room || room.state === 'GAME_OVER') return;
-  if (room.countdownTimer) {
-    clearInterval(room.countdownTimer);
-    room.countdownTimer = null;
-  }
-
-  const activePlayers = room.players.filter(p => p.connected);
-  
-  // Safe vote fill for absent voters
-  activePlayers.forEach(p => {
-    if (!room.votes[p.id]) {
-      const candidates = activePlayers.filter(cand => cand.id !== p.id);
-      const randomSuspect = candidates.length > 0 ? candidates[0].id : p.id;
-      room.votes[p.id] = { voterId: p.id, suspectId: randomSuspect, reason: 'Time expired' };
-    }
-  });
-
-  const counts = {};
-  Object.values(room.votes).forEach(v => {
-    counts[v.suspectId] = (counts[v.suspectId] || 0) + 1;
-  });
-
-  let maxVotes = 0;
-  let accusedId = null;
-  let isTie = false;
-
-  for (const [sId, count] of Object.entries(counts)) {
-    if (count > maxVotes) {
-      maxVotes = count;
-      accusedId = sId;
-      isTie = false;
-    } else if (count === maxVotes) {
-      isTie = true;
-    }
-  }
-
-  const impostor = room.players.find(p => p.role === 'IMPOSTOR') || activePlayers[0];
-  const impostorCaught = !isTie && (accusedId === impostor.id);
-
-  const correctDetectives = activePlayers.filter(p => {
-    const myVote = room.votes[p.id];
-    return myVote && myVote.suspectId === impostor.id;
-  });
-
-  const playerPointsAwarded = {};
-  room.players.forEach(p => { playerPointsAwarded[p.id] = 0; });
-
-  let winningPlayers = [];
-
-  if (impostorCaught) {
-    winningPlayers = [...correctDetectives];
-    const share = correctDetectives.length > 0 ? Math.round(100 / correctDetectives.length) : 100;
-    correctDetectives.forEach(p => {
-      playerPointsAwarded[p.id] = share;
-    });
-  } else {
-    winningPlayers = [impostor];
-    playerPointsAwarded[impostor.id] = 100;
-
-    if (correctDetectives.length > 0) {
-      const secondShare = Math.round(75 / correctDetectives.length);
-      correctDetectives.forEach(p => {
-        playerPointsAwarded[p.id] = secondShare;
-      });
-      winningPlayers.push(...correctDetectives);
-    }
-  }
-
+function broadcastRoomState(room) {
   room.players.forEach(p => {
-    const avIndex = p.avatar !== undefined ? p.avatar : 0;
-    const stats = avatarLeaderboard[avIndex];
-    if (stats) {
-      const ptsThisMatch = playerPointsAwarded[p.id] || 0;
-      stats.matches += 1;
-      stats.lastPoints = ptsThisMatch;
-      stats.points += ptsThisMatch;
+    if (p.socketId) {
+      io.to(p.socketId).emit('full_state_update', getSanitizedRoom(room, p.id));
     }
   });
-  saveLeaderboard(avatarLeaderboard);
-  io.emit('leaderboard_update', avatarLeaderboard);
+}
 
-  const formattedWinners = winningPlayers.map(w => ({
-    id: w.id,
-    name: w.name,
-    avatar: w.avatar,
-    points: playerPointsAwarded[w.id] || 0
-  }));
+function tallyVotesAndEndGame(room) {
+  if (room.state === 'GAME_OVER') return;
+  room.state = 'GAME_OVER';
 
-  const detailedVotes = Object.values(room.votes).map(v => {
-    const voter = room.players.find(p => p.id === v.voterId);
-    const suspect = room.players.find(p => p.id === v.suspectId);
-    return {
+  if (room.countdownInterval) {
+    clearInterval(room.countdownInterval);
+    room.countdownInterval = null;
+  }
+
+  const voteCounts = {};
+  room.players.forEach(p => { voteCounts[p.id] = 0; });
+
+  const detailedVotes = [];
+  Object.keys(room.votes).forEach(voterId => {
+    const vData = room.votes[voterId];
+    const suspectId = vData.suspectId;
+    if (voteCounts[suspectId] !== undefined) {
+      voteCounts[suspectId]++;
+    }
+    const voter = room.players.find(p => p.id === voterId);
+    const suspect = room.players.find(p => p.id === suspectId);
+    detailedVotes.push({
       voterName: voter ? voter.name : 'Unknown',
       suspectName: suspect ? suspect.name : 'Unknown',
-      reason: v.reason
-    };
+      reason: vData.reason || 'No clue analysis provided.'
+    });
   });
 
-  room.state = 'GAME_OVER';
+  const impostor = room.players.find(p => p.id === room.impostorId);
+  const impostorVotes = voteCounts[room.impostorId] || 0;
+
+  let maxVotes = 0;
+  Object.values(voteCounts).forEach(cnt => {
+    if (cnt > maxVotes) maxVotes = cnt;
+  });
+
+  // Impostor is caught if they receive the highest vote total (including ties)
+  const impostorCaught = (impostorVotes > 0 && impostorVotes === maxVotes);
+
+  const winningPlayers = [];
+  const DETECTIVE_POINTS = 100;
+  const IMPOSTOR_POINTS = 150;
+
+  if (impostorCaught) {
+    // Tie / Shared points for ALL detectives who correctly identified the impostor
+    const correctDetectives = room.players.filter(p => {
+      const v = room.votes[p.id];
+      return v && v.suspectId === room.impostorId;
+    });
+
+    const winners = correctDetectives.length > 0 ? correctDetectives : room.players.filter(p => p.id !== room.impostorId);
+
+    winners.forEach(det => {
+      det.points = (det.points || 0) + DETECTIVE_POINTS;
+      det.lastPoints = DETECTIVE_POINTS;
+      det.matches = (det.matches || 0) + 1;
+      winningPlayers.push({
+        id: det.id,
+        name: det.name,
+        avatar: Number(det.avatar !== undefined ? det.avatar : 0),
+        points: DETECTIVE_POINTS
+      });
+    });
+  } else {
+    // Impostor survives or ties for survival
+    if (impostor) {
+      impostor.points = (impostor.points || 0) + IMPOSTOR_POINTS;
+      impostor.lastPoints = IMPOSTOR_POINTS;
+      impostor.matches = (impostor.matches || 0) + 1;
+      winningPlayers.push({
+        id: impostor.id,
+        name: impostor.name,
+        avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
+        points: IMPOSTOR_POINTS
+      });
+    }
+  }
+
+  // Update persistent leaderboard
+  winningPlayers.forEach(w => {
+    const entry = globalLeaderboard.find(l => l.avatarIndex === w.avatar);
+    if (entry) {
+      entry.points += w.points;
+      entry.lastPoints = w.points;
+      entry.matches += 1;
+    }
+  });
+
   room.gameOverData = {
     impostorCaught,
-    impostorName: impostor.name,
-    secretWord: room.currentCard ? room.currentCard.word : 'Secret Topic',
-    secretCategory: room.currentCard ? room.currentCard.category : 'General',
-    winningPlayers: formattedWinners,
-    detailedVotes
+    impostorName: impostor ? impostor.name : 'Unknown',
+    secretWord: room.secretWord,
+    secretCategory: room.secretCategory,
+    detailedVotes,
+    winningPlayers
   };
 
-  broadcastRoom(room.roomId);
+  broadcastRoomState(room);
+  io.emit('leaderboard_update', globalLeaderboard);
+}
+
+function startCountdownPhase(room) {
+  room.state = 'COUNTDOWN_PHASE';
+  let counter = 10;
+  io.to(room.roomId).emit('start_reveal_countdown', { count: counter });
+
+  if (room.countdownInterval) clearInterval(room.countdownInterval);
+
+  room.countdownInterval = setInterval(() => {
+    counter--;
+    if (counter >= 0) {
+      io.to(room.roomId).emit('countdown_tick', { count: counter });
+    }
+    if (counter <= 0) {
+      clearInterval(room.countdownInterval);
+      room.countdownInterval = null;
+      tallyVotesAndEndGame(room);
+    }
+  }, 1000);
 }
 
 io.on('connection', (socket) => {
-  socket.emit('leaderboard_update', avatarLeaderboard);
-
   socket.on('get_leaderboard', () => {
-    socket.emit('leaderboard_update', avatarLeaderboard);
+    socket.emit('leaderboard_update', globalLeaderboard);
   });
 
   socket.on('reset_leaderboard_global', () => {
-    avatarLeaderboard = createFreshLeaderboard();
-    saveLeaderboard(avatarLeaderboard);
-    io.emit('leaderboard_update', avatarLeaderboard);
+    globalLeaderboard.forEach(item => {
+      item.points = 0;
+      item.lastPoints = 0;
+      item.matches = 0;
+    });
+    io.emit('leaderboard_update', globalLeaderboard);
   });
 
   socket.on('resume_session', ({ roomId, playerId }) => {
     const room = rooms[roomId];
-    if (!room) return socket.emit('session_resume_failed');
-
+    if (!room) {
+      return socket.emit('session_resume_failed');
+    }
     const player = room.players.find(p => p.id === playerId);
-    if (!player) return socket.emit('session_resume_failed');
-
-    if (player.disconnectTimeout) {
-      clearTimeout(player.disconnectTimeout);
-      player.disconnectTimeout = null;
+    if (!player) {
+      return socket.emit('session_resume_failed');
     }
 
     player.socketId = socket.id;
     player.connected = true;
     socket.join(roomId);
-    socket.playerId = player.id;
-    socket.roomId = roomId;
-
-    socket.emit('session_resumed', getSanitizedRoom(room, player.id));
-    broadcastRoom(roomId);
+    socket.emit('session_resumed', getSanitizedRoom(room, playerId));
+    broadcastRoomState(room);
   });
 
   socket.on('create_room', ({ playerName, avatar, playerId }) => {
-    const roomId = generateRoomCode();
-    rooms[roomId] = {
+    let roomId = generateRoomCode();
+    while (rooms[roomId]) {
+      roomId = generateRoomCode();
+    }
+
+    const validAvatar = Math.max(0, Math.min(7, parseInt(avatar, 10) || 0));
+
+    const room = {
       roomId,
       hostId: playerId,
-      players: [{ id: playerId, socketId: socket.id, name: playerName, avatar: avatar || 0, role: null, connected: true }],
-      deckPool: secureShuffle(masterDeck),
-      impostorHistory: [],
       state: 'LOBBY',
-      currentCard: null,
+      players: [{
+        id: playerId,
+        socketId: socket.id,
+        name: playerName.substring(0, 14),
+        avatar: validAvatar,
+        connected: true,
+        points: 0,
+        matches: 0
+      }],
       currentRound: 1,
-      totalRounds: 3,
-      turnIndex: 0,
+      impostorId: null,
+      secretWord: '',
+      secretCategory: '',
+      secretImage: '',
       clues: [],
       votes: {},
-      gameOverData: null,
-      countdownTimer: null,
-      openingTimer: null
+      activePlayerOrder: [],
+      currentTurnIndex: 0,
+      countdownInterval: null,
+      gameOverData: null
     };
 
-    socket.playerId = playerId;
-    socket.roomId = roomId;
+    rooms[roomId] = room;
     socket.join(roomId);
-
-    socket.emit('room_created', { roomId, playerId });
-    broadcastRoom(roomId);
+    socket.emit('room_created', { roomId });
+    broadcastRoomState(room);
   });
 
   socket.on('join_room', ({ roomId, playerName, avatar, playerId }) => {
-    const code = (roomId || '').trim().toUpperCase();
+    const code = (roomId || '').toUpperCase().trim();
     const room = rooms[code];
+    if (!room) {
+      return socket.emit('error_message', 'Chamber not found. Verify the 4-letter code.');
+    }
+    if (room.state !== 'LOBBY' && !room.players.some(p => p.id === playerId)) {
+      return socket.emit('error_message', 'Match is currently in progress.');
+    }
 
-    if (!room) return socket.emit('error_message', 'Room code not found.');
-    if (room.state !== 'LOBBY') return socket.emit('error_message', 'Match already in progress.');
+    const validAvatar = Math.max(0, Math.min(7, parseInt(avatar, 10) || 0));
+    let player = room.players.find(p => p.id === playerId);
 
-    const existing = room.players.find(p => p.id === playerId);
-    if (!existing) {
-      room.players.push({
+    if (player) {
+      player.socketId = socket.id;
+      player.name = playerName.substring(0, 14);
+      player.avatar = validAvatar;
+      player.connected = true;
+    } else {
+      if (room.players.length >= 8) {
+        return socket.emit('error_message', 'Chamber is full (8 players maximum).');
+      }
+      player = {
         id: playerId,
         socketId: socket.id,
-        name: playerName,
-        avatar: avatar || 0,
-        role: null,
-        connected: true
-      });
-    } else {
-      if (existing.disconnectTimeout) {
-        clearTimeout(existing.disconnectTimeout);
-        existing.disconnectTimeout = null;
-      }
-      existing.socketId = socket.id;
-      existing.name = playerName;
-      existing.avatar = avatar !== undefined ? avatar : existing.avatar;
-      existing.connected = true;
+        name: playerName.substring(0, 14),
+        avatar: validAvatar,
+        connected: true,
+        points: 0,
+        matches: 0
+      };
+      room.players.push(player);
     }
 
-    socket.playerId = playerId;
-    socket.roomId = code;
     socket.join(code);
-
-    socket.emit('room_joined', { roomId: code, playerId });
-    broadcastRoom(code);
+    socket.emit('room_joined', { roomId: code });
+    broadcastRoomState(room);
   });
-
-  function executeStartMatch(room) {
-    if (!room.deckPool || room.deckPool.length === 0) {
-      room.deckPool = secureShuffle(masterDeck);
-    }
-    room.currentCard = room.deckPool.pop();
-    if (room.countdownTimer) {
-      clearInterval(room.countdownTimer);
-      room.countdownTimer = null;
-    }
-
-    const activePlayers = room.players.filter(p => p.connected);
-    let candidates = [...activePlayers];
-
-    if (room.impostorHistory && room.impostorHistory.length >= 2 && candidates.length > 1) {
-      const len = room.impostorHistory.length;
-      if (room.impostorHistory[len - 1] === room.impostorHistory[len - 2]) {
-        candidates = candidates.filter(p => p.id !== room.impostorHistory[len - 1]);
-      }
-    }
-
-    const chosenIndex = crypto.randomInt(0, candidates.length);
-    const chosenImpostor = candidates[chosenIndex];
-
-    if (!room.impostorHistory) room.impostorHistory = [];
-    room.impostorHistory.push(chosenImpostor.id);
-    if (room.impostorHistory.length > 10) room.impostorHistory.shift();
-
-    room.players.forEach(p => {
-      p.role = (p.id === chosenImpostor.id) ? 'IMPOSTOR' : 'CITIZEN';
-    });
-
-    // 1. INSTANT ATOMIC TRIGGER ACROSS ALL PHONES
-    room.state = 'OPENING_RITUAL';
-    io.to(room.roomId).emit('match_started_sync');
-
-    if (room.openingTimer) clearTimeout(room.openingTimer);
-    room.openingTimer = setTimeout(() => {
-      room.state = 'CLUE_PHASE';
-      room.currentRound = 1;
-      room.totalRounds = 3;
-      room.turnIndex = 0;
-      room.clues = [];
-      room.votes = {};
-      room.gameOverData = null;
-
-      broadcastRoom(room.roomId);
-    }, 3000);
-  }
 
   socket.on('start_game', () => {
-    const room = rooms[socket.roomId];
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
     if (!room) return;
-    if (room.hostId !== socket.playerId) return;
-    if (room.players.filter(p => p.connected).length < 3) {
-      return socket.emit('error_message', 'At least 3 connected players required.');
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player || player.id !== room.hostId) {
+      return socket.emit('error_message', 'Only the Chamber Host can initiate the game.');
     }
-    executeStartMatch(room);
-  });
 
-  socket.on('play_again', () => {
-    const room = rooms[socket.roomId];
-    if (!room) return;
-    if (room.state !== 'GAME_OVER') return;
-    if (room.players.filter(p => p.connected).length < 3) {
-      return socket.emit('error_message', 'At least 3 connected players required.');
-    }
-    executeStartMatch(room);
+    const topic = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+    const impostorIndex = Math.floor(Math.random() * room.players.length);
+
+    room.state = 'CLUE_PHASE';
+    room.currentRound = 1;
+    room.impostorId = room.players[impostorIndex].id;
+    room.secretWord = topic.word;
+    room.secretCategory = topic.category;
+    room.secretImage = topic.image;
+    room.clues = [];
+    room.votes = {};
+    room.gameOverData = null;
+
+    room.activePlayerOrder = [...room.players].sort(() => Math.random() - 0.5).map(p => p.id);
+    room.currentTurnIndex = 0;
+
+    io.to(room.roomId).emit('match_started_sync');
+    broadcastRoomState(room);
   });
 
   socket.on('submit_clue', ({ text }) => {
-    const room = rooms[socket.roomId];
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
     if (!room || room.state !== 'CLUE_PHASE') return;
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player) return;
 
-    const currentTurnPlayer = room.players[room.turnIndex];
-    if (!currentTurnPlayer || currentTurnPlayer.id !== socket.playerId) {
-      return socket.emit('error_message', 'Wait for your turn!');
+    const currentExpectedId = room.activePlayerOrder[room.currentTurnIndex];
+    if (player.id !== currentExpectedId) {
+      return socket.emit('error_message', 'Wait for your turn to transmit a clue.');
     }
-
-    const cleanText = (text || '').trim();
-    if (!cleanText) return;
 
     room.clues.push({
       round: room.currentRound,
-      playerName: currentTurnPlayer.name,
-      playerId: currentTurnPlayer.id,
-      text: cleanText
+      playerId: player.id,
+      playerName: player.name,
+      text: text.substring(0, 120)
     });
 
-    room.turnIndex++;
-    if (room.turnIndex >= room.players.length) {
-      room.turnIndex = 0;
+    room.currentTurnIndex++;
+    if (room.currentTurnIndex >= room.activePlayerOrder.length) {
+      room.currentTurnIndex = 0;
       room.currentRound++;
+      if (room.currentRound > 3) {
+        room.state = 'VOTING_PHASE';
+        broadcastRoomState(room);
+        return;
+      }
     }
-
-    if (room.currentRound > room.totalRounds) {
-      room.state = 'VOTING_PHASE';
-    }
-
-    broadcastRoom(room.roomId);
+    broadcastRoomState(room);
   });
 
   socket.on('end_clues_early', () => {
-    const room = rooms[socket.roomId];
-    if (!room || room.hostId !== socket.playerId) return;
-    if (room.state !== 'CLUE_PHASE') return;
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
+    if (!room || room.state !== 'CLUE_PHASE') return;
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player || player.id !== room.hostId) {
+      return socket.emit('error_message', 'Only the Host can conclude clues early.');
+    }
 
     room.state = 'VOTING_PHASE';
-    broadcastRoom(room.roomId);
+    broadcastRoomState(room);
   });
 
   socket.on('submit_vote', ({ suspectId, reason }) => {
-    const room = rooms[socket.roomId];
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
     if (!room || room.state !== 'VOTING_PHASE') return;
+    const voter = room.players.find(p => p.socketId === socket.id);
+    if (!voter) return;
 
-    if (!suspectId || !reason || !reason.trim()) {
-      return socket.emit('error_message', 'Pick a suspect and provide your reason.');
-    }
-
-    room.votes[socket.playerId] = {
-      voterId: socket.playerId,
+    room.votes[voter.id] = {
       suspectId,
-      reason: reason.trim()
+      reason: (reason || '').substring(0, 180)
     };
 
-    const activePlayers = room.players.filter(p => p.connected);
-
-    room.players.forEach(p => {
-      io.to(p.socketId).emit('vote_progress', {
-        votesCount: Object.keys(room.votes).length,
-        totalVoters: activePlayers.length
-      });
+    io.to(room.roomId).emit('vote_progress', {
+      votesCount: Object.keys(room.votes).length,
+      totalVoters: room.players.length
     });
 
-    if (Object.keys(room.votes).length >= activePlayers.length && room.state === 'VOTING_PHASE') {
-      room.state = 'COUNTDOWN';
-      let secondsLeft = 10;
-
-      io.to(room.roomId).emit('start_reveal_countdown', { count: secondsLeft });
-
-      if (room.countdownTimer) clearInterval(room.countdownTimer);
-
-      room.countdownTimer = setInterval(() => {
-        secondsLeft--;
-        if (secondsLeft > 0) {
-          io.to(room.roomId).emit('countdown_tick', { count: secondsLeft });
-        } else {
-          finalizeMatchVotes(room);
-        }
-      }, 1000);
+    if (Object.keys(room.votes).length >= room.players.length) {
+      startCountdownPhase(room);
     }
   });
 
   socket.on('force_reveal_now', () => {
-    const room = rooms[socket.roomId];
-    if (room && (room.state === 'COUNTDOWN' || room.state === 'VOTING_PHASE')) {
-      finalizeMatchVotes(room);
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
+    if (!room || (room.state !== 'COUNTDOWN_PHASE' && room.state !== 'VOTING_PHASE')) return;
+    tallyVotesAndEndGame(room);
+  });
+
+  socket.on('play_again', () => {
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
+    if (!room) return;
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player || player.id !== room.hostId) {
+      return socket.emit('error_message', 'Only the Host can restart the match.');
     }
+
+    room.state = 'LOBBY';
+    room.currentRound = 1;
+    room.clues = [];
+    room.votes = {};
+    room.gameOverData = null;
+    if (room.countdownInterval) {
+      clearInterval(room.countdownInterval);
+      room.countdownInterval = null;
+    }
+    broadcastRoomState(room);
   });
 
   socket.on('disconnect', () => {
-    const room = rooms[socket.roomId];
+    const room = Object.values(rooms).find(r => r.players.some(p => p.socketId === socket.id));
     if (!room) return;
+    const player = room.players.find(p => p.socketId === socket.id);
+    if (!player) return;
 
-    const p = room.players.find(x => x.id === socket.playerId);
-    if (!p) return;
+    player.connected = false;
+    broadcastRoomState(room);
 
-    p.connected = false;
-
-    p.disconnectTimeout = setTimeout(() => {
-      if (!p.connected) {
-        const anyConnected = room.players.some(x => x.connected);
-        if (!anyConnected) {
-          if (room.countdownTimer) clearInterval(room.countdownTimer);
-          if (room.openingTimer) clearTimeout(room.openingTimer);
-          delete rooms[socket.roomId];
-        } else {
-          if (room.hostId === p.id) {
-            const nextHost = room.players.find(x => x.connected);
-            if (nextHost) room.hostId = nextHost.id;
-          }
-          broadcastRoom(room.roomId);
+    setTimeout(() => {
+      if (!player.connected) {
+        room.players = room.players.filter(p => p.id !== player.id);
+        if (room.players.length === 0) {
+          if (room.countdownInterval) clearInterval(room.countdownInterval);
+          delete rooms[room.roomId];
+        } else if (room.hostId === player.id) {
+          room.hostId = room.players[0].id;
+          broadcastRoomState(room);
         }
       }
     }, 30000);
-
-    broadcastRoom(room.roomId);
   });
 });
 
-const PORT = process.env.PORT || 10000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server online on port ${PORT}`);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
