@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>IMPOSTOR IN VELLOOR</title>
 
-  <!-- LUXURY GAME CALLIGRAPHY FONT -->
+  <!-- LUXURY ROYAL CALLIGRAPHY FONTS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800;900&display=swap" rel="stylesheet">
 
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" href="https://i.postimg.cc/mDfc7FqP/1000129485.png" />
@@ -54,6 +54,148 @@
 
     body.impostor-win-atmosphere {
       background: radial-gradient(circle at center, #2d0006 0%, #080002 100%) !important;
+    }
+
+    /* -------------------------------------------------------------
+       ROYAL GOLDEN CALLIGRAPHY LANDING & INTRO PORTAL
+       ------------------------------------------------------------- */
+    #introOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.6s ease-out;
+    }
+
+    #introStartScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #231435 0%, #06020c 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+      padding: 24px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .portal-emblem-wrap {
+      margin-bottom: 20px;
+      animation: emblemFloat 3s infinite ease-in-out;
+    }
+    @keyframes emblemFloat {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.03); }
+    }
+
+    .portal-crest-circle {
+      width: 86px;
+      height: 86px;
+      border-radius: 50%;
+      border: 2px solid #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.25) 0%, rgba(0,0,0,0.7) 100%);
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.6), inset 0 0 20px rgba(255, 215, 0, 0.4);
+      font-size: 2.8rem;
+    }
+
+    .royal-calligraphy-sub {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 5px;
+      color: #dfba73;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(223, 186, 115, 0.6);
+      margin-bottom: 6px;
+    }
+
+    .royal-calligraphy-main {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #bf953f 0%, #fff6c7 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 18px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 35px rgba(255, 120, 0, 0.5));
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .royal-calligraphy-desc {
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      color: #cfd8dc;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 34px;
+      opacity: 0.9;
+    }
+
+    .royal-enter-btn {
+      position: relative;
+      background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 30%, #b38728 50%, #fbf5b7 80%, #aa771c 100%);
+      color: #120902;
+      border: 2px solid #fff5c0;
+      padding: 16px 36px;
+      border-radius: 35px;
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.7), 0 0 60px rgba(255, 100, 0, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      animation: enterPulse 1.8s infinite alternate ease-in-out;
+    }
+    .royal-enter-btn:active {
+      transform: scale(0.96);
+    }
+    @keyframes enterPulse {
+      0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 40px rgba(255, 68, 0, 0.3); }
+      100% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.9), 0 0 70px rgba(255, 120, 0, 0.6); }
+    }
+
+    #introVideoPlayer {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+
+    #skipIntroBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid var(--gold-border);
+      color: #ffd700;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      z-index: 10;
+      backdrop-filter: blur(6px);
+      font-family: 'Cinzel', serif;
     }
 
     #emberCanvas, #dragonCanvas, #fireworksCanvas, #lightningCanvas, #flameGlow {
@@ -251,6 +393,9 @@
 
     .hidden { display: none !important; }
 
+    /* -------------------------------------------------------------
+       AVATAR WARRIOR COMBAT ANIMATIONS + BLAZING FIRE RING
+       ------------------------------------------------------------- */
     .avatar-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -388,6 +533,9 @@
     .gold-text { color: #f5d77f; font-weight: 700; }
     .silver-text { color: #cfd8dc; font-weight: 600; }
 
+    /* -------------------------------------------------------------
+       ROYAL FROST CARD (SPLIT EVIL IMPOSTOR / ROYAL DETECTIVE CREST)
+       ------------------------------------------------------------- */
     .role-card-wrapper {
       position: relative;
       margin-bottom: 14px;
@@ -697,6 +845,27 @@
 </head>
 <body>
 
+  <!-- ROYAL GOLDEN CALLIGRAPHY LANDING & INTRO PORTAL -->
+  <div id="introOverlay">
+    <div id="introStartScreen">
+      <div class="portal-emblem-wrap">
+        <div class="portal-crest-circle">⚔️</div>
+      </div>
+      <div class="royal-calligraphy-sub">REALM OF SECRETS</div>
+      <h1 class="royal-calligraphy-main">IMPOSTOR IN VELLOOR</h1>
+      <p class="royal-calligraphy-desc">Truth is your shield • Deception is your blade</p>
+      
+      <button class="royal-enter-btn" onclick="startIntroCinematic()">
+        ENTER CHAMBER
+      </button>
+    </div>
+
+    <button id="skipIntroBtn" class="hidden" onclick="dismissIntro()">Skip ✕</button>
+    <video id="introVideoPlayer" class="hidden" playsinline webkit-playsinline preload="auto">
+      <source src="/intro.mp4" type="video/mp4">
+    </video>
+  </div>
+
   <audio id="bgmAudio" loop preload="auto">
     <source src="https://files.catbox.moe/9p8ij0.mp3" type="audio/mpeg">
   </audio>
@@ -906,6 +1075,55 @@
       });
     }
 
+    // -------------------------------------------------------------
+    // INTRO CINEMATIC ENGINE & GESTURE GATEWAY
+    // -------------------------------------------------------------
+    const introOverlay = document.getElementById('introOverlay');
+    const introStartScreen = document.getElementById('introStartScreen');
+    const introVideo = document.getElementById('introVideoPlayer');
+    const skipIntroBtn = document.getElementById('skipIntroBtn');
+
+    function startIntroCinematic() {
+      // 1. Mandatory gesture unlocks audio & SFX simultaneously
+      tryPlayBGMOnFirstTouch();
+      playTouchSFX();
+
+      introStartScreen.classList.add('hidden');
+      introVideo.classList.remove('hidden');
+      skipIntroBtn.classList.remove('hidden');
+
+      // 2. Play video with audio enabled
+      introVideo.muted = false;
+      const playPromise = introVideo.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Fallback if device still restricts unmuted autoplay
+          introVideo.muted = true;
+          introVideo.play().catch(() => dismissIntro());
+        });
+      }
+
+      introVideo.onended = () => {
+        dismissIntro();
+      };
+    }
+
+    function dismissIntro() {
+      if (introVideo) {
+        introVideo.pause();
+        introVideo.src = '';
+      }
+      introOverlay.style.opacity = '0';
+      setTimeout(() => {
+        introOverlay.classList.add('hidden');
+      }, 600);
+
+      // Start background theme immediately when entering the main game
+      if (bgmEnabled && bgmAudio.paused) {
+        bgmAudio.play().catch(e => {});
+      }
+    }
+
     const AVATAR_LIST = [
       'https://i.postimg.cc/9R4txjzB/1789934119807.png',
       'https://i.postimg.cc/hJv9jqL3/1789934215137.png',
@@ -968,9 +1186,6 @@
       timeout: 20000
     });
 
-    // -------------------------------------------------------------
-    // TAB-ISOLATED SESSION ID (FIXES 4 PLAYERS ON ONE PHONE)
-    // -------------------------------------------------------------
     let playerId = sessionStorage.getItem('velloor_player_id');
     if (!playerId) {
       playerId = 'p_' + Math.random().toString(36).substring(2, 10);
@@ -1127,10 +1342,6 @@
     function tryPlayBGMOnFirstTouch() {
       if (!userHasInteracted) {
         userHasInteracted = true;
-        if (bgmEnabled && bgmAudio.paused) {
-          bgmAudio.volume = 0.5;
-          bgmAudio.play().catch(e => {});
-        }
       }
     }
 
