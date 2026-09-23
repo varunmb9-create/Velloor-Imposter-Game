@@ -224,8 +224,8 @@
 
     #emberCanvas { z-index: 2; }
     
-    /* DRAGONS FLY OVER THE GAME CONTAINER (z-index: 10) WITHOUT BLOCKING TOUCHES */
-    #dragonCanvas { z-index: 50; }
+    /* DYNAMIC DRAGON CANVAS: Default z-index 50 (above lobby), dynamically switched in gameplay */
+    #dragonCanvas { z-index: 50; transition: z-index 0.3s ease; }
     
     #fireworksCanvas { z-index: 1001; }
 
@@ -1182,9 +1182,7 @@
       preloadedImages.push(img);
     });
 
-    // -------------------------------------------------------------
-    // PRELOAD 8 CHARACTER TROPHY IMAGES FROM /public
-    // -------------------------------------------------------------
+    // Preload 8 Character Victory Trophy Assets
     const TROPHY_IMAGES = [
       '/trophy_0.png',
       '/trophy_1.png',
@@ -1314,7 +1312,7 @@
     animateEmbers();
 
     // -------------------------------------------------------------
-    // DUAL DRAGONS ENGINE (SOARING ABOVE AND ACROSS GAMEPLAY)
+    // DUAL DRAGONS ENGINE (SMOOTH FLIGHT, HEAD FORWARD, DYNAMIC DEPTH, X-CROSS)
     // -------------------------------------------------------------
     const dragonCanvas = document.getElementById('dragonCanvas');
     const dctx = dragonCanvas.getContext('2d');
@@ -1332,9 +1330,17 @@
     const iceDragonImage = new Image();
     iceDragonImage.src = '/dragon_ice.png';
 
-    let activeDragon = null;
+    let activeDragons = [];
     let nextDragonType = 'RED';
     let dragonParticles = [];
+    let victoryCeremonyTriggered = false;
+
+    // Set dragon layer depth based on current screen
+    function setDragonDepth(aboveUI) {
+      if (dragonCanvas) {
+        dragonCanvas.style.zIndex = aboveUI ? '50' : '4';
+      }
+    }
 
     function triggerFireAtmosphere() {
       playFireDragonRoarSFX();
@@ -1354,83 +1360,118 @@
       }
     }
 
+    // Helper: Correct rotation so dragon head always faces direction of motion
+    // The source sprite faces left by default.
+    function createDragonInstance(type, startX, startY, vx, vy, width = 150, height = 110) {
+      return {
+        type,
+        x: startX,
+        y: startY,
+        vx,
+        vy,
+        width,
+        height
+      };
+    }
+
     function spawnNextDragon() {
-      if (activeDragon) return;
+      if (victoryCeremonyTriggered) return; // Special ritual takes precedence
+      if (activeDragons.length > 0) return; // Only one dragon flies during standard game
 
       const type = nextDragonType;
       nextDragonType = (nextDragonType === 'RED') ? 'BLUE' : 'RED';
 
       const cw = dragonCanvas.width;
       const ch = dragonCanvas.height;
-
       const traj = Math.floor(Math.random() * 4);
-      let x, y, vx, vy, angle, flipH = false;
-      const speed = 4.2 + Math.random() * 2.2;
+
+      let x, y, vx, vy;
+      const speed = 260; // Pixels per second
 
       if (traj === 0) {
+        // Left to Right (horizontal)
         x = -180;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = speed;
-        vy = (Math.random() - 0.5) * 1.5;
-        angle = Math.atan2(vy, vx);
-        flipH = false;
+        vy = (Math.random() - 0.5) * 60;
       } else if (traj === 1) {
+        // Right to Left (horizontal)
         x = cw + 180;
         y = ch * 0.15 + Math.random() * (ch * 0.65);
         vx = -speed;
-        vy = (Math.random() - 0.5) * 1.5;
-        angle = Math.atan2(vy, -vx);
-        flipH = true;
+        vy = (Math.random() - 0.5) * 60;
       } else if (traj === 2) {
-        x = cw * 0.1 + Math.random() * (cw * 0.8);
+        // Top to Bottom (diagonal descent)
+        x = cw * 0.2 + Math.random() * (cw * 0.6);
         y = -180;
-        vx = (Math.random() - 0.5) * speed;
+        vx = (Math.random() - 0.5) * 160;
         vy = speed;
-        angle = Math.atan2(vy, vx);
-        flipH = (vx < 0);
       } else {
-        x = cw * 0.1 + Math.random() * (cw * 0.8);
+        // Bottom to Top (diagonal climb)
+        x = cw * 0.2 + Math.random() * (cw * 0.6);
         y = ch + 180;
-        vx = (Math.random() - 0.5) * speed;
+        vx = (Math.random() - 0.5) * 160;
         vy = -speed;
-        angle = Math.atan2(vy, vx);
-        flipH = (vx < 0);
       }
 
-      activeDragon = {
-        type,
-        x,
-        y,
-        vx,
-        vy,
-        angle,
-        flipH,
-        width: 150,
-        height: 110
-      };
+      activeDragons.push(createDragonInstance(type, x, y, vx, vy));
 
-      if (type === 'RED') {
-        triggerFireAtmosphere();
-      } else {
-        triggerIceAtmosphere();
-      }
+      if (type === 'RED') triggerFireAtmosphere();
+      else triggerIceAtmosphere();
     }
 
-    function updateAndDrawDragons() {
+    // VICTORY "X-CROSS" CEREMONY
+    function triggerVictoryXCrossCeremony() {
+      victoryCeremonyTriggered = true;
+      activeDragons = []; // Clear existing
+      setDragonDepth(true); // Soar above during celebration
+
+      const cw = dragonCanvas.width;
+      const ch = dragonCanvas.height;
+
+      // Calculate crossing speed
+      const speedX = 280;
+      const speedY = -420;
+
+      // Red Fire Dragon: from bottom-left climbing to top-right
+      const redDragon = createDragonInstance('RED', -120, ch + 80, speedX, speedY, 160, 115);
+
+      // Blue Ice Dragon: from bottom-right climbing to top-left
+      const blueDragon = createDragonInstance('BLUE', cw + 120, ch + 80, -speedX, speedY, 160, 115);
+
+      activeDragons.push(redDragon, blueDragon);
+
+      // Trigger both roaring synthesizers
+      setTimeout(() => triggerFireAtmosphere(), 100);
+      setTimeout(() => triggerIceAtmosphere(), 350);
+
+      // Allow normal dragon cycle to resume after 9 seconds
+      setTimeout(() => {
+        victoryCeremonyTriggered = false;
+      }, 9000);
+    }
+
+    let lastFrameTime = performance.now();
+
+    function updateAndDrawDragons(now) {
+      const dt = Math.min((now - lastFrameTime) / 1000, 0.1); // Delta time in seconds
+      lastFrameTime = now;
+
       dctx.clearRect(0, 0, dragonCanvas.width, dragonCanvas.height);
 
+      // 1. Update & Render Particles
       for (let i = dragonParticles.length - 1; i >= 0; i--) {
         const p = dragonParticles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= 0.024;
-        p.size *= 0.97;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.alpha -= 1.2 * dt;
+        p.size *= (1 - 0.8 * dt);
 
-        if (p.alpha <= 0) {
+        if (p.alpha <= 0 || p.size <= 0.5) {
           dragonParticles.splice(i, 1);
         } else {
           dctx.save();
-          dctx.globalAlpha = p.alpha;
+          dctx.globalAlpha = Math.max(0, p.alpha);
           dctx.fillStyle = p.color;
           dctx.shadowColor = p.color;
           dctx.shadowBlur = 10;
@@ -1441,29 +1482,43 @@
         }
       }
 
-      if (activeDragon) {
-        const d = activeDragon;
-        d.x += d.vx;
-        d.y += d.vy;
+      // 2. Update & Render Dragons
+      for (let idx = activeDragons.length - 1; idx >= 0; idx--) {
+        const d = activeDragons[idx];
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
 
+        // Trail particles
         const trailColor = (d.type === 'RED')
           ? (Math.random() > 0.4 ? '#ff3b00' : (Math.random() > 0.5 ? '#ff9900' : '#ffd700'))
           : (Math.random() > 0.4 ? '#00e5ff' : (Math.random() > 0.5 ? '#80d8ff' : '#ffffff'));
 
         dragonParticles.push({
-          x: d.x + (Math.random() - 0.5) * 20,
-          y: d.y + (Math.random() - 0.5) * 20,
-          vx: -d.vx * 0.2 + (Math.random() - 0.5) * 1.5,
-          vy: -d.vy * 0.2 + (Math.random() - 0.5) * 1.5,
-          size: 2.5 + Math.random() * 3.5,
+          x: d.x + (Math.random() - 0.5) * 15,
+          y: d.y + (Math.random() - 0.5) * 15,
+          vx: -d.vx * 0.18 + (Math.random() - 0.5) * 70,
+          vy: -d.vy * 0.18 + (Math.random() - 0.5) * 70,
+          size: 2.8 + Math.random() * 3.2,
           alpha: 0.9,
           color: trailColor
         });
 
+        // Compute angle & facing direction
+        // The original image faces left.
+        const angle = Math.atan2(d.vy, d.vx);
+        const movingRight = (d.vx >= 0);
+
         dctx.save();
         dctx.translate(d.x, d.y);
-        dctx.rotate(d.angle);
-        if (d.flipH) dctx.scale(-1, 1);
+
+        if (movingRight) {
+          // Flip horizontally so head faces right, then rotate
+          dctx.scale(-1, 1);
+          dctx.rotate(-angle + Math.PI);
+        } else {
+          // Natural left facing, rotate to match velocity angle
+          dctx.rotate(angle - Math.PI);
+        }
 
         const imgToDraw = (d.type === 'RED') ? fireDragonImage : iceDragonImage;
 
@@ -1474,18 +1529,20 @@
         }
         dctx.restore();
 
-        const margin = 260;
+        // Screen boundary cull
+        const margin = 280;
         const cw = dragonCanvas.width;
         const ch = dragonCanvas.height;
         if (d.x < -margin || d.x > cw + margin || d.y < -margin || d.y > ch + margin) {
-          activeDragon = null;
+          activeDragons.splice(idx, 1);
         }
       }
 
       requestAnimationFrame(updateAndDrawDragons);
     }
-    updateAndDrawDragons();
-    setInterval(spawnNextDragon, 7000);
+    requestAnimationFrame(updateAndDrawDragons);
+
+    setInterval(spawnNextDragon, 7500);
 
     // -------------------------------------------------------------
     // PROCEDURAL AUDIO SYNTHESIZERS FOR DUAL DRAGONS
@@ -1910,6 +1967,13 @@
       const exitBtn = document.getElementById('exitGameHeaderBtn');
       if (id === 'screen-auth') exitBtn.classList.add('hidden');
       else exitBtn.classList.remove('hidden');
+
+      // Adjust dynamic dragon depth based on current screen
+      if (id === 'screen-auth' || id === 'screen-lobby') {
+        setDragonDepth(true); // Above the lobby and login boxes
+      } else {
+        setDragonDepth(false); // Below gameplay and voting boxes
+      }
     }
 
     function exitGameDirectly() {
@@ -2158,6 +2222,9 @@
           pModal.classList.remove('impostor-win-modal');
           container.classList.remove('impostor-win-box');
         }
+
+        // TRIGGER THE GRAND X-CROSS CEREMONY
+        triggerVictoryXCrossCeremony();
 
         // DYNAMIC CHARACTER TROPHY SHOWCASE
         const trophyBox = document.getElementById('victoryTrophyContainer');
