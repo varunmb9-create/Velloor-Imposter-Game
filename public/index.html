@@ -223,10 +223,7 @@
     }
 
     #emberCanvas { z-index: 2; }
-    
-    /* DYNAMIC DRAGON CANVAS: Default z-index 50 (above lobby), dynamically switched in gameplay */
     #dragonCanvas { z-index: 50; transition: z-index 0.3s ease; }
-    
     #fireworksCanvas { z-index: 1001; }
 
     #fireGlow {
@@ -1103,12 +1100,6 @@
   </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(err => {});
-      });
-    }
-
     // -------------------------------------------------------------
     // INTRO CINEMATIC ENGINE & ROBUST GESTURE GATEWAY
     // -------------------------------------------------------------
@@ -1135,7 +1126,7 @@
 
       const playPromise = introVideo.play();
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
+        playPromise.catch(() => {
           introVideo.muted = true;
           introVideo.play().catch(() => {
             dismissIntro();
@@ -1160,7 +1151,7 @@
       }, 600);
 
       if (bgmEnabled && bgmAudio.paused) {
-        bgmAudio.play().catch(e => {});
+        bgmAudio.play().catch(() => {});
       }
     }
 
@@ -1182,24 +1173,10 @@
       preloadedImages.push(img);
     });
 
-    // Preload 8 Character Victory Trophy Assets
-    const TROPHY_IMAGES = [
-      '/trophy_0.png',
-      '/trophy_1.png',
-      '/trophy_2.png',
-      '/trophy_3.png',
-      '/trophy_4.png',
-      '/trophy_5.png',
-      '/trophy_6.png',
-      '/trophy_7.png'
-    ];
-
-    const preloadedTrophies = [];
-    TROPHY_IMAGES.forEach(src => {
-      const img = new Image();
-      img.src = src;
-      preloadedTrophies.push(img);
-    });
+    for (let i = 0; i < 8; i++) {
+      const tImg = new Image();
+      tImg.src = `/trophy_${i}.png`;
+    }
 
     let selectedAvatarIndex = 0;
     const avatarGridEl = document.getElementById('avatarGrid');
@@ -1312,7 +1289,7 @@
     animateEmbers();
 
     // -------------------------------------------------------------
-    // DUAL DRAGONS ENGINE (TOP-DOWN VERTICAL SPRITE ORIENTATION MATH)
+    // DUAL DRAGONS ENGINE (UPRIGHT SPRITE FLIGHT & DYNAMIC DEPTH)
     // -------------------------------------------------------------
     const dragonCanvas = document.getElementById('dragonCanvas');
     const dctx = dragonCanvas.getContext('2d');
@@ -1333,11 +1310,11 @@
     let activeDragons = [];
     let nextDragonType = 'RED';
     let dragonParticles = [];
-    let victoryCeremonyTriggered = false;
+    let victoryCeremonyRunning = false;
 
     function setDragonDepth(aboveUI) {
       if (dragonCanvas) {
-        dragonCanvas.style.zIndex = aboveUI ? '50' : '4';
+        dragonCanvas.style.zIndex = aboveUI ? '2001' : '4';
       }
     }
 
@@ -1359,20 +1336,12 @@
       }
     }
 
-    function createDragonInstance(type, startX, startY, vx, vy, width = 130, height = 220) {
-      return {
-        type,
-        x: startX,
-        y: startY,
-        vx,
-        vy,
-        width,
-        height
-      };
+    function createDragonInstance(type, startX, startY, vx, vy, width = 135, height = 230) {
+      return { type, x: startX, y: startY, vx, vy, width, height };
     }
 
     function spawnNextDragon() {
-      if (victoryCeremonyTriggered) return;
+      if (victoryCeremonyRunning) return;
       if (activeDragons.length > 0) return;
 
       const type = nextDragonType;
@@ -1413,29 +1382,34 @@
       else triggerIceAtmosphere();
     }
 
-    // VICTORY "X-CROSS" CEREMONY
+    // -------------------------------------------------------------
+    // GRAND VICTORY X-CROSS REVEAL CEREMONY (DEDICATED RUNNER)
+    // -------------------------------------------------------------
     function triggerVictoryXCrossCeremony() {
-      victoryCeremonyTriggered = true;
+      victoryCeremonyRunning = true;
       activeDragons = [];
       setDragonDepth(true);
 
       const cw = dragonCanvas.width;
       const ch = dragonCanvas.height;
 
-      const speedX = 260;
-      const speedY = -400;
+      const startY = ch + 10;
+      const targetDuration = 2.4;
 
-      const redDragon = createDragonInstance('RED', -120, ch + 80, speedX, speedY, 135, 230);
-      const blueDragon = createDragonInstance('BLUE', cw + 120, ch + 80, -speedX, speedY, 135, 230);
+      const speedX = (cw * 0.65) / targetDuration;
+      const speedY = -(ch + 360) / targetDuration;
 
-      activeDragons.push(redDragon, blueDragon);
+      const redDragon = createDragonInstance('RED', -60, startY, speedX, speedY, 150, 250);
+      const blueDragon = createDragonInstance('BLUE', cw + 60, startY, -speedX, speedY, 150, 250);
 
-      setTimeout(() => triggerFireAtmosphere(), 100);
-      setTimeout(() => triggerIceAtmosphere(), 350);
+      activeDragons = [redDragon, blueDragon];
+
+      setTimeout(() => triggerFireAtmosphere(), 50);
+      setTimeout(() => triggerIceAtmosphere(), 250);
 
       setTimeout(() => {
-        victoryCeremonyTriggered = false;
-      }, 9000);
+        victoryCeremonyRunning = false;
+      }, 7000);
     }
 
     let lastFrameTime = performance.now();
@@ -1497,12 +1471,12 @@
 
         if (imgToDraw && imgToDraw.complete && imgToDraw.naturalWidth > 0) {
           dctx.shadowColor = (d.type === 'RED') ? '#ff3300' : '#00e5ff';
-          dctx.shadowBlur = 18;
+          dctx.shadowBlur = 22;
           dctx.drawImage(imgToDraw, -d.width / 2, -d.height / 2, d.width, d.height);
         }
         dctx.restore();
 
-        const margin = 320;
+        const margin = 380;
         const cw = dragonCanvas.width;
         const ch = dragonCanvas.height;
         if (d.x < -margin || d.x > cw + margin || d.y < -margin || d.y > ch + margin) {
@@ -1517,7 +1491,7 @@
     setInterval(spawnNextDragon, 7500);
 
     // -------------------------------------------------------------
-    // PROCEDURAL AUDIO SYNTHESIZERS FOR DUAL DRAGONS
+    // PROCEDURAL AUDIO SYNTHESIZERS
     // -------------------------------------------------------------
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.5;
@@ -1539,7 +1513,7 @@
 
       if (bgmEnabled) {
         bgmAudio.volume = 0.5;
-        bgmAudio.play().catch(e => {});
+        bgmAudio.play().catch(() => {});
         btn.textContent = '🔊 Music: ON';
       } else {
         bgmAudio.pause();
@@ -1940,7 +1914,6 @@
       if (id === 'screen-auth') exitBtn.classList.add('hidden');
       else exitBtn.classList.remove('hidden');
 
-      // Adjust dynamic dragon depth: Above in lobby, below in gameplay
       if (id === 'screen-auth' || id === 'screen-lobby') {
         setDragonDepth(true);
       } else {
@@ -1977,7 +1950,7 @@
     });
 
     // -------------------------------------------------------------
-    // BULLETPROOF ROOM CREATION & JOINING (ZERO-FREEZE FAILSAFE)
+    // ZERO-FREEZE BULLETPROOF CHAMBER CREATION & JOINING
     // -------------------------------------------------------------
     let createTimeoutTimer = null;
 
@@ -2008,21 +1981,19 @@
       sessionStorage.removeItem('velloor_room_id');
       sessionStorage.setItem('velloor_player_name', name);
 
-      // Auto-reset failsafe after 4.5 seconds so user is never stuck
       if (createTimeoutTimer) clearTimeout(createTimeoutTimer);
       createTimeoutTimer = setTimeout(() => {
         if (btn && btn.disabled) {
           resetCreateBtn();
-          alert('Chamber connection timed out. Please check your connection and tap Create again.');
+          alert('Chamber creation took too long. Server may be waking up. Tap again.');
         }
-      }, 4500);
+      }, 5000);
 
       const payload = { playerName: name, avatar: selectedAvatarIndex, playerId };
 
       if (socket.connected) {
         socket.emit('create_room', payload);
       } else {
-        // If socket is momentarily negotiating connection, wait and emit on connect
         socket.once('connect', () => {
           socket.emit('create_room', payload);
         });
@@ -2264,18 +2235,21 @@
           container.classList.remove('impostor-win-box');
         }
 
-        // TRIGGER THE GRAND X-CROSS CEREMONY
+        // TRIGGER THE X-CROSS CEREMONY
         triggerVictoryXCrossCeremony();
 
-        // DYNAMIC CHARACTER TROPHY SHOWCASE
+        // 8-WARRIOR CUSTOM TROPHY SHOWCASE
         const trophyBox = document.getElementById('victoryTrophyContainer');
         if (god.winningPlayers && god.winningPlayers.length > 0) {
           trophyBox.innerHTML = god.winningPlayers.map(w => {
-            const avatarIdx = (w.avatar !== undefined) ? w.avatar : 0;
-            const trophySrc = `/trophy_${avatarIdx}.png`;
+            const rawIdx = (w.avatar !== undefined) ? w.avatar : (w.avatarIndex !== undefined ? w.avatarIndex : 0);
+            const avatarIdx = Math.max(0, Math.min(7, parseInt(rawIdx, 10) || 0));
             return `
               <div class="warrior-trophy-card">
-                <img class="warrior-trophy-img" src="${trophySrc}" alt="${w.name}"/>
+                <img class="warrior-trophy-img" 
+                     src="/trophy_${avatarIdx}.png" 
+                     alt="${w.name}" 
+                     onerror="this.onerror=null; this.src='${AVATAR_LIST[avatarIdx]}';"/>
               </div>
             `;
           }).join('');
@@ -2284,26 +2258,31 @@
         pModal.classList.remove('hidden');
         startFireworksShow();
 
-        const crownedHTML = god.winningPlayers.map(w => `
-          <div class="crowned-avatar-card">
-            <div class="crown-wrapper">
-              <span class="golden-crown-icon">👑</span>
-              <img class="winner-avatar" src="${AVATAR_LIST[w.avatar || 0]}" />
+        // MULTI-WINNER CROWNED DETECTIVES LIST
+        const crownedHTML = god.winningPlayers.map(w => {
+          const rawIdx = (w.avatar !== undefined) ? w.avatar : (w.avatarIndex !== undefined ? w.avatarIndex : 0);
+          const aIdx = Math.max(0, Math.min(7, parseInt(rawIdx, 10) || 0));
+          return `
+            <div class="crowned-avatar-card">
+              <div class="crown-wrapper">
+                <span class="golden-crown-icon">👑</span>
+                <img class="winner-avatar" src="${AVATAR_LIST[aIdx]}" />
+              </div>
+              <div class="winner-name-tag">${w.name}</div>
+              <div class="winner-pts-tag">+${w.points} Pts</div>
             </div>
-            <div class="winner-name-tag">${w.name}</div>
-            <div class="winner-pts-tag">+${w.points} Pts</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
 
         document.getElementById('crownedWinnersList').innerHTML = crownedHTML;
         document.getElementById('screenResultsCrownedWinners').innerHTML = crownedHTML;
 
         if (god.impostorCaught) {
           document.getElementById('partyHeader').textContent = 'CHAMPIONS OF VELLOOR!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to detectives below:`;
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> was identified! Points distributed to all detectives who exposed them below:`;
         } else {
           document.getElementById('partyHeader').textContent = 'IMPOSTOR EVADED MAJORITY!';
-          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived! Points awarded below:`;
+          document.getElementById('partySub').innerHTML = `The Impostor <strong>${god.impostorName}</strong> survived! Victory points awarded below:`;
         }
 
         const verdictEl = document.getElementById('finalVerdict');
