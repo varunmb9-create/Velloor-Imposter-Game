@@ -1458,7 +1458,6 @@
           color: trailColor
         });
 
-        // The image points straight UP (-PI/2). Adding Math.PI/2 directly maps rotation to movement
         const rotationAngle = Math.atan2(d.vy, d.vx) + Math.PI / 2;
 
         dctx.save();
@@ -2232,10 +2231,10 @@
           container.classList.remove('impostor-win-box');
         }
 
-        // TRIGGER THE X-CROSS DRAGONS
+        // 1. TRIGGER THE X-CROSS CEREMONY (Starts immediately upon reveal)
         triggerVictoryXCrossCeremony();
 
-        // 8-WARRIOR TROPHY SHOWCASE
+        // 2. TROPHY SHOWCASE
         const trophyBox = document.getElementById('victoryTrophyContainer');
         if (god.winningPlayers && god.winningPlayers.length > 0) {
           trophyBox.innerHTML = god.winningPlayers.map(w => {
@@ -2255,7 +2254,7 @@
         pModal.classList.remove('hidden');
         startFireworksShow();
 
-        // TIE / MULTI-WINNER CROWNED TAGS
+        // 3. TIE / DETECTIVES CROWNED LIST
         const crownedHTML = god.winningPlayers.map(w => {
           const rawIdx = (w.avatar !== undefined) ? w.avatar : (w.avatarIndex !== undefined ? w.avatarIndex : 0);
           const aIdx = Math.max(0, Math.min(7, parseInt(rawIdx, 10) || 0));
