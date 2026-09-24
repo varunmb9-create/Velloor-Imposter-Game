@@ -13,7 +13,7 @@ const io = new Server(server, {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Persistent global leaderboard across sessions
+// Persistent global leaderboard across sessions (indexed by avatar 0-7)
 const globalLeaderboard = [];
 for (let i = 0; i < 8; i++) {
   globalLeaderboard.push({
@@ -168,16 +168,13 @@ function generateRoomCode() {
   return code;
 }
 
-// Draw a word that has not been picked in this room yet
 function drawNextUniqueTopic(room) {
   if (!room.availableWords || room.availableWords.length === 0) {
-    // Fresh clone & shuffle when exhausted
     room.availableWords = [...MASTER_WORD_LIST].sort(() => Math.random() - 0.5);
   }
   return room.availableWords.pop();
 }
 
-// Select an Impostor with no consecutive repeats
 function selectUnbiasedImpostor(room) {
   let eligiblePlayers = room.players;
   if (room.players.length > 1 && room.lastImpostorId) {
@@ -205,7 +202,9 @@ function getSanitizedRoom(room, targetPlayerId) {
       name: p.name,
       avatar: p.avatar,
       isHost: p.id === room.hostId,
-      connected: p.connected
+      connected: p.connected,
+      matches: p.matches || 0,
+      points: p.points || 0
     })),
     activePlayer: room.activePlayerOrder.length > 0 ? room.players.find(p => p.id === room.activePlayerOrder[room.currentTurnIndex]) : null,
     clues: room.clues,
@@ -224,7 +223,7 @@ function broadcastRoomState(room) {
   });
 }
 
-// PRIZE POOL LOGIC: Fixed 100 Points Match Budget
+// 100-POINT PRIZE POOL & EVERY PLAYER'S MATCH COUNT ADVANCEMENT
 function tallyVotesAndEndGame(room) {
   if (room.state === 'GAME_OVER') return;
   room.state = 'GAME_OVER';
@@ -233,6 +232,17 @@ function tallyVotesAndEndGame(room) {
     clearInterval(room.countdownInterval);
     room.countdownInterval = null;
   }
+
+  // 1. UPDATE MATCHES PLAYED FOR EVERY PARTICIPATING PLAYER & LEADERBOARD
+  room.players.forEach(p => {
+    p.matches = (p.matches || 0) + 1;
+    const avatarIdx = Number(p.avatar !== undefined ? p.avatar : 0);
+    const entry = globalLeaderboard.find(l => l.avatarIndex === avatarIdx);
+    if (entry) {
+      entry.matches += 1;
+      entry.lastPoints = 0; // Reset lastPoints by default unless they win
+    }
+  });
 
   const voteCounts = {};
   room.players.forEach(p => { voteCounts[p.id] = 0; });
@@ -261,7 +271,6 @@ function tallyVotesAndEndGame(room) {
     if (cnt > maxVotes) maxVotes = cnt;
   });
 
-  // Majority rule check
   const totalVotesCast = Object.keys(room.votes).length;
   const isStrictMajority = (impostorVotes > totalVotesCast / 2);
   const isPluralityWin = (impostorVotes > 0 && impostorVotes === maxVotes);
@@ -270,84 +279,91 @@ function tallyVotesAndEndGame(room) {
   const TOTAL_MATCH_POINTS = 100;
   const winningPlayers = [];
 
-  // Detectives who voted for the true impostor
   const correctDetectives = room.players.filter(p => {
     const v = room.votes[p.id];
     return v && v.suspectId === room.impostorId && p.id !== room.impostorId;
   });
 
   if (impostorCaught) {
-    // CITIZENS WIN: Impostor caught by majority
-    // 100 points divided among detectives who successfully identified the impostor
+    // Detectives succeed: 100 points split equally among detectives who found Impostor
     const winners = correctDetectives.length > 0 ? correctDetectives : room.players.filter(p => p.id !== room.impostorId);
     const pointsEach = Math.round(TOTAL_MATCH_POINTS / winners.length);
 
     winners.forEach(det => {
       det.points = (det.points || 0) + pointsEach;
       det.lastPoints = pointsEach;
-      det.matches = (det.matches || 0) + 1;
       winningPlayers.push({
         id: det.id,
         name: det.name,
         avatar: Number(det.avatar !== undefined ? det.avatar : 0),
         points: pointsEach
       });
+
+      const entry = globalLeaderboard.find(l => l.avatarIndex === Number(det.avatar !== undefined ? det.avatar : 0));
+      if (entry) {
+        entry.points += pointsEach;
+        entry.lastPoints = pointsEach;
+      }
     });
   } else {
-    // IMPOSTOR WINS: Majority failed to catch the impostor
+    // Impostor survives: 70 pts to Impostor, 30 pts shared among accurate detectives
     if (correctDetectives.length > 0) {
-      // Impostor claims 70%, sharp detectives who voted impostor share 30%
       const impostorBounty = 70;
       const detectiveShare = Math.round(30 / correctDetectives.length);
 
       if (impostor) {
         impostor.points = (impostor.points || 0) + impostorBounty;
         impostor.lastPoints = impostorBounty;
-        impostor.matches = (impostor.matches || 0) + 1;
         winningPlayers.push({
           id: impostor.id,
           name: impostor.name,
           avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
           points: impostorBounty
         });
+
+        const entry = globalLeaderboard.find(l => l.avatarIndex === Number(impostor.avatar !== undefined ? impostor.avatar : 0));
+        if (entry) {
+          entry.points += impostorBounty;
+          entry.lastPoints = impostorBounty;
+        }
       }
 
       correctDetectives.forEach(det => {
         det.points = (det.points || 0) + detectiveShare;
         det.lastPoints = detectiveShare;
-        det.matches = (det.matches || 0) + 1;
         winningPlayers.push({
           id: det.id,
           name: det.name,
           avatar: Number(det.avatar !== undefined ? det.avatar : 0),
           points: detectiveShare
         });
+
+        const entry = globalLeaderboard.find(l => l.avatarIndex === Number(det.avatar !== undefined ? det.avatar : 0));
+        if (entry) {
+          entry.points += detectiveShare;
+          entry.lastPoints = detectiveShare;
+        }
       });
     } else {
-      // Impostor totally fooled everyone: Full 100 points to Impostor
+      // Impostor tricked all players: 100 points full bounty
       if (impostor) {
         impostor.points = (impostor.points || 0) + TOTAL_MATCH_POINTS;
         impostor.lastPoints = TOTAL_MATCH_POINTS;
-        impostor.matches = (impostor.matches || 0) + 1;
         winningPlayers.push({
           id: impostor.id,
           name: impostor.name,
           avatar: Number(impostor.avatar !== undefined ? impostor.avatar : 0),
           points: TOTAL_MATCH_POINTS
         });
+
+        const entry = globalLeaderboard.find(l => l.avatarIndex === Number(impostor.avatar !== undefined ? impostor.avatar : 0));
+        if (entry) {
+          entry.points += TOTAL_MATCH_POINTS;
+          entry.lastPoints = TOTAL_MATCH_POINTS;
+        }
       }
     }
   }
-
-  // Update global leaderboard
-  winningPlayers.forEach(w => {
-    const entry = globalLeaderboard.find(l => l.avatarIndex === w.avatar);
-    if (entry) {
-      entry.points += w.points;
-      entry.lastPoints = w.points;
-      entry.matches += 1;
-    }
-  });
 
   room.gameOverData = {
     impostorCaught,
